@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>プリズム｜科学と出会う入り口</title>
+<meta name="description" content="実験キット、出張授業の講師、科学館、動画教材、イベント。科学を伝えるための道具と人と場所を集めた場所です。">
+<style>
+:root{
+ --ink:#12151c;--ink2:#4b5565;--ink3:#828e9e;--bg:#fff;--rule:#e7e7e7;--rule2:#cfcfcf;--soft:#f6f6f6;
+ --claim:#0057c2;--claim-bg:#eef4fd;--pract:#a34a00;--pract-bg:#fef4e9;--ok:#00795c;--live:#ff2d6f;
+ --rainbow:linear-gradient(100deg,#3b5bff,#8b5cf6,#ff4d8d,#ff6b2c,#f5b700,#5dd62c,#00c2cc);
+ --r-hee:#3b5bff;--r-waku:#ff6b2c;--r-fumu:#00b36b;--r-suki:#ff4d8d;--r-yatte:#8b5cf6;
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:#fff;color:var(--ink);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Noto Sans JP",system-ui,sans-serif;font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;text-align:left}
+h1,h2,h3{margin:0;line-height:1.32;letter-spacing:-.02em}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--claim);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}
+.hd{max-width:1120px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px}
+.logo small{display:block;font-size:9px;letter-spacing:.24em;color:var(--ink3);font-weight:700}
+.hd nav{margin-left:auto;display:flex;gap:4px;font-size:13.5px;font-weight:700}
+.hd nav button{padding:8px 13px;border-radius:999px;color:var(--ink2)}
+.hd nav button:hover{background:var(--soft);color:var(--ink)}
+.hd nav .post{background:var(--ink);color:#fff}
+@media(max-width:780px){.hd nav .sp{display:none}}
+.hero{padding:40px 0 8px;display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center}
+@media(max-width:940px){.hero{grid-template-columns:1fr;padding-top:26px;gap:22px}}
+.hero h1{font-size:clamp(32px,5.4vw,58px);font-weight:900;line-height:1.12}
+.hero h1 .g{background:var(--rainbow);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% 100%;animation:hue 9s linear infinite}
+@keyframes hue{to{background-position:220% 0}}
+.hero p{margin:16px 0 0;font-size:16.5px;color:var(--ink2);max-width:34em}
+.stats{display:flex;gap:22px;margin-top:20px;flex-wrap:wrap}
+.stats b{display:block;font-size:26px;font-weight:900;letter-spacing:-.03em}
+.stats span{font-size:11.5px;color:var(--ink3);font-weight:700}
+.searchbar{background:#fff;border:2px solid var(--ink);border-radius:22px;display:flex;flex-wrap:wrap;overflow:hidden;margin-top:26px;box-shadow:7px 7px 0 var(--ink)}
+.sb{flex:1 1 200px;padding:12px 20px;border-right:1px solid var(--rule);min-width:0}
+.sb label{display:block;font-size:10.5px;letter-spacing:.12em;color:var(--ink3);font-weight:800}
+.sb select,.sb input{width:100%;border:0;background:none;font:inherit;font-size:15px;padding:2px 0;font-weight:600}
+.sb select:focus,.sb input:focus{outline:none}
+.sbgo button{height:100%;padding:0 34px;background:var(--ink);color:#fff;font-weight:900;font-size:16px;text-align:center}
+@media(max-width:780px){.searchbar{box-shadow:4px 4px 0 var(--ink)}.sbgo{flex:1 1 100%}.sbgo button{width:100%;padding:15px}}
+.stream{background:#0c1016;border-radius:24px;padding:20px 0 8px;color:#e9eef5;overflow:hidden;box-shadow:0 20px 44px rgba(12,16,22,.22)}
+.stream .sh{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:0 22px 2px}
+.stream .sh b{font-size:19px;font-weight:900;color:#fff}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--live);animation:pulse 1.8s infinite;flex:0 0 auto}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,45,111,.7)}70%{box-shadow:0 0 0 11px rgba(255,45,111,0)}100%{box-shadow:0 0 0 0 rgba(255,45,111,0)}}
+.cnt2{background:var(--live);color:#fff;font-size:11px;font-weight:900;border-radius:999px;padding:3px 11px}
+.stream .note{padding:2px 22px 0;font-size:12px;color:#8fa2b7}
+.vwrap{height:318px;overflow:hidden;margin-top:12px;-webkit-mask-image:linear-gradient(180deg,transparent,#000 9%,#000 90%,transparent);mask-image:linear-gradient(180deg,transparent,#000 9%,#000 90%,transparent)}
+.vmarq{display:flex;flex-direction:column;gap:9px;padding:0 18px;animation:vslide 40s linear infinite}
+.vwrap:hover .vmarq{animation-play-state:paused}
+@keyframes vslide{to{transform:translateY(-50%)}}
+.st{background:#161d27;border:1px solid #26313e;border-radius:15px;padding:12px 14px;display:flex;gap:11px;align-items:flex-start}
+.st:hover{border-color:#4c6076;background:#1b2430}
+.st .ico{width:32px;height:32px;border-radius:9px;background:#232d3a;flex:0 0 auto;display:grid;place-items:center;overflow:hidden}
+.st .ico img{width:20px;height:20px;border-radius:4px}
+.st .f{font-size:10px;font-weight:900;color:#ffb08a}
+.st h3{font-size:14px;margin-top:2px;color:#fff;line-height:1.4}
+.st .m{margin-top:3px;font-size:11px;color:#7f93a8}
+section{margin-top:50px}
+.sec-hd{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:16px}
+.sec-hd h2{font-size:clamp(21px,2.6vw,28px);font-weight:900}
+.sec-hd .sub{font-size:13px;color:var(--ink3);font-weight:600}
+.sec-hd .more{margin-left:auto;font-size:13.5px;font-weight:800;border-bottom:2px solid var(--ink);padding-bottom:1px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:880px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{position:relative;border-radius:22px;padding:22px 20px 20px;color:#fff;overflow:hidden;min-height:132px;display:flex;flex-direction:column;justify-content:flex-end;transition:.2s;isolation:isolate}
+.tile:hover{transform:translateY(-5px)}
+.tile::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(120% 90% at 12% 0%,rgba(255,255,255,.4),transparent 58%)}
+.tile .n{position:absolute;top:14px;right:18px;font-size:36px;font-weight:900;opacity:.42;letter-spacing:-.04em}
+.tile b{font-size:24px;font-weight:900;letter-spacing:-.03em;display:block}
+.tile span{font-size:12.5px;opacity:.95;margin-top:3px;font-weight:600}
+.rescue{width:100%;display:flex;align-items:center;gap:20px;flex-wrap:wrap;background:#fff;border:2px solid var(--ink);border-radius:24px;padding:24px 26px;box-shadow:7px 7px 0 #f5b700;transition:.2s}
+.rescue:hover{transform:translateY(-3px);box-shadow:10px 10px 0 #f5b700}
+.rescue b{font-size:24px;font-weight:900;display:block}
+.rescue p{margin:6px 0 0;color:var(--ink2);font-size:14px;max-width:52em}
+.rescue .arrow{margin-left:auto;font-size:15px;font-weight:900;background:var(--ink);color:#fff;border-radius:999px;padding:11px 22px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}
+.pc{background:#fff;border:1px solid var(--rule);border-radius:20px;overflow:hidden;transition:.2s;display:flex;flex-direction:column}
+.pc:hover{transform:translateY(-5px);border-color:transparent;box-shadow:0 16px 32px rgba(20,24,32,.13)}
+.thumb{height:116px;position:relative;display:flex;align-items:flex-end;padding:11px 12px;cursor:pointer}
+.thumb .kind{background:rgba(255,255,255,.96);border-radius:999px;padding:3px 11px;font-size:11px;font-weight:900}
+.thumb .flag{position:absolute;top:11px;left:11px;color:#fff;border-radius:999px;padding:3px 11px;font-size:10.5px;font-weight:900}
+.thumb .spec-badge{position:absolute;top:11px;right:11px;background:rgba(255,255,255,.95);border-radius:999px;padding:3px 10px;font-size:10px;font-weight:900}
+.thumb .fav{position:absolute;bottom:11px;right:12px;width:36px;height:36px;border-radius:11px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.18);overflow:hidden}
+.thumb .fav img{width:22px;height:22px}
+.pc .body{padding:13px 15px 8px;cursor:pointer;flex:1}
+.pc h3{font-size:15px;font-weight:800;line-height:1.45}
+.pc .brand{font-size:11.5px;color:var(--ink3);margin-top:4px;font-weight:600}
+.pc .foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;gap:8px}
+.pc .price{font-size:15px;font-weight:900}
+.pc .cta{font-size:12px;font-weight:900;color:#fff;background:var(--ink);border-radius:999px;padding:4px 12px;white-space:nowrap}
+.pc .meta{margin-top:8px;font-size:11.5px;color:var(--pract);font-weight:700}
+.pc .meta.none{color:var(--ink3);font-weight:600}
+.rx{display:flex;flex-wrap:wrap;gap:5px;padding:9px 13px 13px;border-top:1px solid var(--rule);margin-top:auto}
+.rxb{border:1px solid var(--rule);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:5px;transition:.15s;background:#fff}
+.rxb:hover{transform:translateY(-2px)}
+.rxb .d{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.rxb .c{color:var(--ink3);font-weight:700;font-size:11px}
+.rxb[aria-pressed=true]{color:#fff}
+.rxb[aria-pressed=true] .c{color:rgba(255,255,255,.85)}
+.rxb[aria-pressed=true] .d{background:#fff!important}
+.rx-lg .rxb{padding:8px 16px;font-size:14px}
+.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+.toolbar .cnt{font-size:32px;font-weight:900;letter-spacing:-.03em}
+.toolbar .cnt span{font-size:16px;margin-left:6px}
+.sortsel{margin-left:auto;border:1px solid var(--rule2);border-radius:999px;padding:9px 16px;font-weight:800;font-size:13.5px;background:#fff}
+.layout{display:grid;grid-template-columns:246px 1fr;gap:24px;margin-top:6px}
+@media(max-width:940px){.layout{grid-template-columns:1fr}}
+.facets{background:#fff;border:1px solid var(--rule);border-radius:20px;padding:6px 18px 16px;align-self:start;position:sticky;top:80px;max-height:78vh;overflow:auto}
+.fg{padding:13px 0;border-bottom:1px solid var(--rule)}.fg:last-child{border-bottom:0}
+.fg b{font-size:12.5px;font-weight:900;display:block;margin-bottom:8px}
+.fo{display:block;width:100%;font-size:13px;padding:4px 0;color:var(--ink2);font-weight:600}
+.fo:hover{color:var(--ink)}
+.fo[aria-pressed=true]{color:var(--claim);font-weight:900}
+.fo .c{float:right;color:var(--ink3);font-size:11.5px;font-weight:600}
+.chipbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{background:var(--ink);color:#fff;border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:800}
+.hubhead{border-radius:26px;padding:30px;color:#fff;position:relative;overflow:hidden;margin-top:10px}
+.hubhead::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 8% 0%,rgba(255,255,255,.38),transparent 60%);pointer-events:none}
+.hubhead h1{font-size:clamp(27px,4.4vw,42px);font-weight:900}
+.hubhead p{margin:10px 0 0;font-size:15px;max-width:46em;opacity:.97}
+.hubhead .big{position:absolute;right:26px;top:12px;font-size:72px;font-weight:900;opacity:.3}
+.subbar{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.subchip{background:#fff;border:1px solid var(--rule);border-radius:999px;padding:7px 15px;font-size:13px;font-weight:800}
+.subchip:hover{border-color:var(--ink)}
+.subchip i{font-style:normal;color:var(--ink3);margin-left:6px;font-weight:700;font-size:12px}
+.howto{background:#fff;border:2px solid var(--ink);border-radius:22px;padding:22px 24px;margin-top:20px;box-shadow:6px 6px 0 var(--ink)}
+.howto h3{font-size:17px;font-weight:900}
+.howto ol,.howto ul{margin:12px 0 0;padding-left:1.3em;font-size:14px;color:var(--ink2);line-height:2}
+.howto .warn{margin-top:14px;padding-top:12px;border-top:1px dashed var(--rule2);font-size:13px;color:var(--pract);font-weight:700}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+@media(max-width:880px){.packs{grid-template-columns:1fr}}
+.pack{border:1px solid var(--rule);border-radius:18px;padding:17px 18px;background:#fff;transition:.2s}
+.pack:hover{border-color:var(--ink);transform:translateY(-3px);box-shadow:0 12px 24px rgba(0,0,0,.08)}
+.pack .tag2{font-size:11px;font-weight:900;color:var(--pract)}
+.pack h3{font-size:17px;margin-top:4px;font-weight:900}
+.pack .spec{margin-top:10px;font-size:12.5px;color:var(--ink2);line-height:1.9}
+.pack .spec div::before{content:"✓";color:var(--ok);font-weight:900;margin-right:7px}
+.pack .ev{margin-top:10px;font-size:12px;color:var(--pract);border-top:1px dashed var(--rule2);padding-top:8px}
+.calm{background:#fff;border:1px solid var(--rule);border-radius:20px;padding:24px}
+.calm .band{height:8px;border-radius:999px}
+.favbig{width:46px;height:46px;border-radius:13px;background:#fff;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,.12);overflow:hidden;flex:0 0 auto}
+.favbig img{width:28px;height:28px}
+.box{border-radius:14px;padding:15px 17px;font-size:13.2px;margin-top:12px}
+.box .bt{font-size:11.5px;letter-spacing:.07em;font-weight:900;display:block;margin-bottom:8px}
+.box ul{margin:0;padding-left:1.05em}
+.box-claim{background:var(--claim-bg);border:1px solid #cddff7}.box-claim .bt{color:var(--claim)}
+.box-pract{background:var(--pract-bg);border:1px solid #f2ddc2}.box-pract .bt{color:var(--pract)}
+.box-empty{background:var(--soft);border:1px dashed var(--rule2)}.box-empty .bt{color:var(--ink3)}
+.btn{background:var(--ink);color:#fff;padding:13px 26px;border-radius:999px;font-weight:900;font-size:15px;text-align:center;display:inline-block}
+.btn.g{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.tag{display:inline-block;font-size:11.5px;border:1px solid var(--rule2);border-radius:999px;padding:2px 11px;margin:0 6px 6px 0;color:var(--ink2);font-weight:600}
+.hint{font-size:12.5px;color:var(--ink3);line-height:1.75;margin:4px 0 12px;font-weight:600}
+.back{font-size:13.5px;font-weight:800;padding:6px 0;margin-bottom:6px;color:var(--ink2)}
+.empty{padding:52px 0;color:var(--ink3);text-align:center;font-weight:700}
+.mats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+@media(max-width:820px){.mats{grid-template-columns:1fr}}
+.mat{border:1px solid var(--rule);border-radius:16px;padding:14px 16px;background:#fff}
+.mtop{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mtop b{font-size:15.5px;font-weight:900}
+.mb{font-size:10.5px;font-weight:900;border-radius:999px;padding:2px 9px}
+.mb.con{background:#fef0e2;color:var(--pract)}
+.mb.dur{background:#eef4fd;color:var(--claim)}
+.mb.own{background:var(--soft);color:var(--ink3)}
+.mb.saf{background:#ffe9f1;color:#c2185b}
+.mmeta{font-size:12.5px;color:var(--ink3);margin-top:5px;font-weight:600}
+.msaf{font-size:12.5px;color:#c2185b;font-weight:700;margin-top:5px}
+.mbuy{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.mlink{font-size:12.5px;font-weight:900;border:1px solid var(--rule2);border-radius:999px;padding:6px 14px;text-decoration:none}
+.mlink:hover{border-color:var(--ink);background:var(--soft)}
+.disc{font-size:11.5px;color:var(--ink3);margin-top:12px;font-weight:600;line-height:1.8}
+footer{margin-top:64px;border-top:1px solid var(--rule);padding:24px 0 70px;font-size:12px;color:var(--ink3);line-height:1.95}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><div class="hd">
+ <button class="logo" onclick="go('home')">
+  <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+   <stop offset="0" stop-color="#3b5bff"/><stop offset=".33" stop-color="#ff4d8d"/><stop offset=".66" stop-color="#f5b700"/><stop offset="1" stop-color="#00c2cc"/></linearGradient></defs>
+  <path d="M13 2 L24 22 L2 22 Z" fill="url(#lg)"/></svg>
+  <span>プリズム<small>PRISM</small></span></button>
+ <nav>
+  <button class="sp" onclick="resetF();go('list')">さがす</button>
+  <button class="sp" onclick="goStream()">毎週更新</button>
+  <button class="post" onclick="go('publish')">掲載する</button>
+ </nav></div></header>
+<main id="app"></main>
+<script>
+const DB = __PRISM_DATA__;
+
+const SPEC={"宇宙・天文":"#3b5bff","生きもの・生命科学":"#00b36b","医療・健康・人体":"#ff4d8d",
+ "地球・自然・防災":"#ff6b2c","物理・化学・材料":"#8b5cf6","工学・ものづくり":"#f5b700",
+ "情報・数理・AI":"#00c2cc","環境・気候・エネルギー":"#5dd62c"};
+const RAINBOW="linear-gradient(115deg,#3b5bff,#8b5cf6,#ff4d8d,#ff6b2c,#f5b700,#5dd62c,#00c2cc)";
+const VERB={"みる・きく":{c:"#3b5bff",d:"動画・アプリ・VR",lead:"画面の前で完結します。準備がいらないぶん、いつでも始められます。"},
+ "つかう":{c:"#ff6b2c",d:"キット・器具・模型・ゲーム",lead:"手元に物が残ります。買う判断が要りますが、何年も使えます。"},
+ "よむ":{c:"#8b5cf6",d:"書籍・図鑑",lead:"一人で読み進められます。渡してそのまま持ち帰ってもらえます。"},
+ "やってみる":{c:"#00b36b",d:"ワークショップ・観察会・ショー",lead:"参加する人がいて、その場で起きます。日程と場所の調整が要ります。"},
+ "よぶ・あう":{c:"#ff4d8d",d:"出張授業・講演・あの人を呼ぶ",lead:"人を呼びます。相談から始まり、断られることもあります。"},
+ "いく":{c:"#00a3ad",d:"科学館・施設・展示",lead:"こちらが出かけます。移動の時間と引率の人手を先に見積もってください。"}};
+const RX=[{k:"hee",l:"へぇ！",c:"var(--r-hee)"},{k:"waku",l:"ワクワク",c:"var(--r-waku)"},
+ {k:"fumu",l:"ふむふむ",c:"var(--r-fumu)"},{k:"suki",l:"すき",c:"var(--r-suki)"},
+ {k:"yatte",l:"やってみたい",c:"var(--r-yatte)"}];
+const RXBASE={},MYRX={};
+function seedRx(){DB.items.forEach(i=>{RXBASE[i.id]={};RX.forEach((r,n)=>{
+ const x=(i.id*(37+n*17)+n*101)%211;RXBASE[i.id][r.k]=Math.floor(x*x%97/3)+1;});});}
+function rxCount(id,k){return (RXBASE[id]&&RXBASE[id][k]||0)+((MYRX[id]&&MYRX[id][k])?1:0)}
+function toggleRx(ev,id,k){ev.stopPropagation();MYRX[id]=MYRX[id]||{};MYRX[id][k]=!MYRX[id][k];render()}
+function rxBar(id,big){return `<div class="rx ${big?"rx-lg":""}">${RX.map(r=>{
+ const on=!!(MYRX[id]&&MYRX[id][r.k]);
+ return `<button class="rxb" aria-pressed="${on}" style="${on?`background:${r.c};border-color:${r.c}`:""}"
+  onclick="toggleRx(event,${id},'${r.k}')"><span class="d" style="background:${r.c}"></span>${r.l}<span class="c">${rxCount(id,r.k)}</span></button>`}).join("")}</div>`}
+
+const PACKS=[
+ {key:"bousai",tag:"9月1日 防災の日",title:"15分の訓練枠を、体験でうめる",color:"#ff6b2c",
+  lead:"地区訓練の座学のあいだに15分だけ、体を動かす時間を入れたい。そのための一式です。",
+  specs:["準備20分","後ろの席からも見える配置図","地区の訓練で2回の実施記録"],ev:"直近：地域住民45人・時間内に終了",
+  inside:["15分の進行表（導入3分・体験9分・持ち帰り3分）","準備物リストと当日の並べ方","配る紙 1枚（自宅で家族と話す質問3つ）","後ろの席から見えないときの代替手順"],
+  filter:i=>i.field==="地球・自然・防災"},
+ {key:"jiyu",tag:"夏の追い込み",title:"自由研究の相談に、そのまま出せる3案",color:"#8b5cf6",
+  lead:"あと10日で提出。テーマが決まっていない子に、その場で渡せる案です。",
+  specs:["10日で終わる観察計画","まとめ方の見本つき","家庭での実施記録あり"],ev:"直近：小学校中学年1人・10日で提出",
+  inside:["10日分の観察カレンダー","記録用紙（写真を貼る欄つき）","まとめ方の見本 1枚","家にあるもので代用する場合の一覧"],
+  filter:i=>i.purpose.indexOf("探究・自由研究")>=0},
+ {key:"rika2",tag:"2学期のはじまり",title:"45分・35人・準備20分で終わる理科",color:"#00b36b",
+  lead:"来週の45分。準備は放課後の20分しかない。それでも成立する題材だけを集めました。",
+  specs:["進行表そのまま","印刷して配るワークシート","他校で複数回の実施"],ev:"直近：小学校高学年35人・時間内に終了",
+  inside:["45分の進行表（5分刻み）","35人ぶんの班分けと動線","印刷して配るワークシート","時間が足りなくなったときに削る工程の指定"],
+  filter:i=>i.audience.indexOf("小学生")>=0&&["教材セット","実験キット","模型・立体教具","出張授業"].indexOf(i.fmt)>=0}];
+
+const POSTS=[
+ {key:"own",color:"#0057c2",n:"①",title:"自分の教材・講演・イベントを載せる",
+  lead:"あなたが作ったもの、あなたが引き受けられること。URLを1つ入れれば下書きができます。",
+  who:"研究者・科学館・企業・NPO・個人コミュニケーター",
+  can:["推奨する対象・時間・人数・準備時間","設計の意図（何を想定して作ったか）","安全上の注意と必要なもの","費用と申し込み方法"],
+  cannot:["実践記録（実施した人だけが書けます）","他人の掲載物の内容"],
+  steps:["URLかPDFを入れる（下書きが自動で作られる）","推奨条件を直す","設計の意図を1〜2文で書く","公開する"],
+  warn:"公開後は、どの場面で・どんな条件で使われ・何が変更されたかが返ってきます。推奨条件が実践記録に書き換えられることはありません。"},
+ {key:"public",color:"#00795c",n:"②",title:"科学館・自治体・養成講座を登録する",
+  lead:"提供者が自分では載せないもの。運営と、気づいた人が一緒に集めます。",
+  who:"運営・学校関係者・自治体の担当者",
+  can:["施設名・所在地・開館情報","プログラムの対象と申し込み方法","公式サイトのURL（更新は自動で追いかけます）"],
+  cannot:["施設の内部方針や、確認できない料金"],
+  steps:["公式サイトのURLを入れる","対象と申し込み方法を確認して書く","運営が事実確認をして公開する"],
+  warn:"公的機関の情報は年度替わりで大きく変わります。年次で自動確認し、変化があれば人が見ます。"},
+ {key:"found",color:"#a34a00",n:"③",title:"見つけたものを登録する",
+  lead:"番組、CM、街の掲示、たまたま見た動画。提供者が自分では載せないものを、出会った人が持ち込みます。",
+  who:"だれでも",
+  can:["どこで出会ったか","何がおもしろかったか（見た人の言葉として）","たどれるURL"],
+  cannot:["提供者の推奨条件（提供者がいないため空のままにします）"],
+  steps:["URLか、どこで見たかを書く","おもしろかった点を1文で書く","公開する（提供者は後から名乗り出て引き取れます）"],
+  warn:"提供者の意図が確認できないものは①の欄を空のままにします。埋めません。推測で埋めると、提供者が言っていないことを言わせることになります。"}];
+
+let view="home",curId=null,hub=null,sort="new";
+const F={grp:"",fmt:"",field:"",ptype:"",txn:"",aud:"",purpose:"",q:"",stream:false};
+function go(v){view=v;window.scrollTo(0,0);render()}
+function openHub(k,key){hub={kind:k,key:key};go('hub')}
+function goStream(){resetF();F.stream=true;go('list')}
+function resetF(){Object.assign(F,{grp:"",fmt:"",field:"",ptype:"",txn:"",aud:"",purpose:"",q:"",stream:false})}
+function openItem(id){curId=id;go('detail')}
+function it(id){return DB.items.filter(function(x){return x.id===id})[0]}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function host(u){try{return new URL(u).hostname}catch(e){return ""}}
+function fav(u,px){const h=host(u);if(!h)return "";
+ return `<img loading="lazy" alt="" width="${px}" height="${px}" src="https://www.google.com/s2/favicons?domain=${h}&sz=128"
+ onerror="this.onerror=null;this.src='https://icons.duckduckgo.com/ip3/${h}.ico'">`}
+function money(i){if(i.txn==="無料")return "無料";if(i.price&&Number(i.price)>0)return "¥"+Number(i.price).toLocaleString();
+ if(i.txn==="要見積もり")return "要見積もり";if(i.txn==="サブスク")return "月額制";return i.txn}
+function isStream(i){return i.freq==="週次"||i.freq==="日次"}
+function th(i){const c=SPEC[i.field];
+ return c?`background:linear-gradient(140deg,${c} 0%,${c} 46%,${c}22 100%),repeating-linear-gradient(48deg,rgba(255,255,255,.2) 0 9px,transparent 9px 18px);`:`background:${RAINBOW};`}
+function flag(i){if(isStream(i))return `<span class="flag" style="background:var(--live)">毎週更新</span>`;
+ if(i.txn==="要見積もり")return `<span class="flag" style="background:#2b3542">依頼して呼ぶ</span>`;
+ if(i.txn==="予約（日時指定）")return `<span class="flag" style="background:#0057c2">日時指定</span>`;return ""}
+function card(i){return `<div class="pc">
+ <div class="thumb" style="${th(i)}" onclick="openItem(${i.id})">${flag(i)}
+  ${i.field?"":`<span class="spec-badge">分野をまたぐ</span>`}
+  <span class="kind">${i.fmt}</span><span class="fav">${fav(i.url,22)}</span></div>
+ <div class="body" onclick="openItem(${i.id})"><h3>${esc(i.title)}</h3><p class="brand">${esc(i.provider)}</p>
+  <div class="foot"><span class="price">${money(i)}</span><span class="cta">${i.cta}</span></div>
+  <div class="meta none">${(i.mats||[]).length}点の準備物</div></div>
+ ${rxBar(i.id)}</div>`}
+const SORTS=[["new","新しい順"],["old","古い順"],["r_hee","「へぇ！」が多い順"],["r_waku","「ワクワク」が多い順"],
+ ["r_fumu","「ふむふむ」が多い順"],["r_suki","「すき」が多い順"],["r_yatte","「やってみたい」が多い順"],
+ ["price_l","価格が安い順"],["price_h","価格が高い順"]];
+function sorted(list){const a=list.slice();
+ if(sort.indexOf("r_")===0){const k=sort.slice(2);return a.sort((x,y)=>rxCount(y.id,k)-rxCount(x.id,k))}
+ if(sort==="new")return a.sort((x,y)=>(y.since||0)-(x.since||0));
+ if(sort==="old")return a.sort((x,y)=>(x.since||9999)-(y.since||9999));
+ if(sort==="price_l")return a.sort((x,y)=>(Number(x.price)||0)-(Number(y.price)||0));
+ if(sort==="price_h")return a.sort((x,y)=>(Number(y.price)||0)-(Number(x.price)||0));
+ return a}
+function setSort(v){sort=v;render()}
+function sortSel(){return `<select class="sortsel" aria-label="並び替え" onchange="setSort(this.value)">
+ ${SORTS.map(s=>`<option value="${s[0]}" ${sort===s[0]?"selected":""}>${s[1]}</option>`).join("")}</select>`}
+
+function streamCard(i){return `<button class="st" onclick="openItem(${i.id})">
+ <span class="ico">${fav(i.url,20)}</span>
+ <span><span class="f">${i.fmt}</span><h3>${esc(i.title)}</h3><div class="m">${esc(i.provider)}</div></span></button>`}
+function viewHome(){
+ const stream=DB.items.filter(isStream);
+ const noField=DB.items.filter(i=>!i.field).length;
+ return `<div class="wrap">
+ <div class="hero">
+  <div><h1>科学と出会う、<br><span class="g">${DB.items.length}の入り口</span>。</h1>
+   <p>動画も、実験キットも、科学館も、あの人も。伝えたい人と、出会いたい人が同じ場所にいます。</p>
+   <div class="stats">
+    <div><b>${DB.items.length}</b><span>掲載</span></div>
+    <div><b>${stream.length}</b><span>毎週更新される連載</span></div>
+    <div><b>${DB.ptypes.length}</b><span>届けている人の種類</span></div>
+    <div><b>${noField}</b><span>分野をまたぐもの</span></div></div></div>
+  <div class="stream">
+   <div class="sh"><span class="dot"></span><b>今週の更新</b><span class="cnt2">${stream.length}チャンネル</span></div>
+   <p class="note">毎週なにか増えている場所。ここだけは、毎日開いても変わっています。</p>
+   <div class="vwrap"><div class="vmarq">${stream.concat(stream).map(streamCard).join("")}</div></div></div>
+ </div>
+ <div class="searchbar">
+  <div class="sb"><label>なにを</label><input id="q" placeholder="防災、宇宙、顕微鏡、さかなクン…" aria-label="キーワード"
+   onkeydown="if(event.key==='Enter'){resetF();F.q=this.value;go('list')}"></div>
+  <div class="sb"><label>どうしたい</label><select id="g" aria-label="行動"><option value="">選ばない</option>
+   ${DB.groups.map(g=>`<option>${g}</option>`).join("")}</select></div>
+  <div class="sb"><label>だれに</label><select id="a" aria-label="対象"><option value="">選ばない</option>
+   ${DB.audiences.map(a=>`<option>${a}</option>`).join("")}</select></div>
+  <div class="sbgo"><button onclick="resetF();F.q=document.getElementById('q').value;F.grp=document.getElementById('g').value;F.aud=document.getElementById('a').value;go('list')">さがす</button></div>
+ </div>
+ <section><div class="sec-hd"><h2>何をしたいかで選ぶ</h2>
+   <span class="sub">分野ではなく動詞で。${noField}件は分野に収まりません</span>
+   <button class="more" onclick="resetF();go('list')">すべて見る</button></div>
+  <div class="tiles">${DB.groups.map(g=>`<button class="tile" style="background:${VERB[g].c}" onclick="openHub('verb','${g}')">
+   <span class="n">${DB.items.filter(i=>i.grp===g).length}</span><b>${g}</b><span>${VERB[g].d}</span></button>`).join("")}</div>
+ </section>
+ <section><div class="sec-hd"><h2>掲載する</h2><span class="sub">3つの経路。書ける範囲がそれぞれ違います</span></div>
+  <div class="tiles">${POSTS.map(p=>`<button class="tile" style="background:${p.color}" onclick="openHub('post','${p.key}')">
+   <span class="n">${p.n}</span><b style="font-size:19px">${p.title}</b><span>${p.who}</span></button>`).join("")}</div>
+ </section>
+ <section><div class="sec-hd"><h2>時間がない人へ</h2></div>
+  <button class="rescue" onclick="openHub('rescue','')">
+   <span><b>選ばなくていいものを、置いています</b>
+   <p>進行表・準備物・配る紙まで入った一式です。来週の45分、9月1日の15分、あと10日の自由研究。締切から選べます。</p></span>
+   <span class="arrow">見る →</span></button>
+ </section>
+ <section><div class="sec-hd"><h2>届けている人たち</h2></div>
+  <div class="subbar">${DB.ptypes.map(p=>`<button class="subchip" onclick="resetF();F.ptype='${p}';go('list')">${p}<i>${DB.items.filter(i=>i.ptype===p).length}</i></button>`).join("")}</div>
+ </section>
+ <footer>プリズムは、科学を伝えるための道具・人・場所を集めた場です。<br>
+ 掲載${DB.items.length}件は実在の提供者です。価格の一部とリアクション数はダミーです。アイコンは各提供者サイトのファビコンです。<br>
+ 掲載の削除・修正のご依頼はこちらまで： <a href="mailto:REPLACE_WITH_YOUR_EMAIL">REPLACE_WITH_YOUR_EMAIL</a></footer></div>`}
+
+function filtered(){return DB.items.filter(function(i){
+ if(F.grp&&i.grp!==F.grp)return false;
+ if(F.fmt&&i.fmt!==F.fmt)return false;
+ if(F.field&&i.field!==F.field)return false;
+ if(F.ptype&&i.ptype!==F.ptype)return false;
+ if(F.txn&&i.txn!==F.txn)return false;
+ if(F.aud&&!(i.audience.indexOf(F.aud)>=0||i.audience.indexOf("全年齢")>=0))return false;
+ if(F.purpose&&i.purpose.indexOf(F.purpose)<0)return false;
+ if(F.stream&&!isStream(i))return false;
+ if(F.q){const s=(i.title+i.desc+i.provider+i.topics.join("")+i.fmt+i.field).toLowerCase();
+  if(s.indexOf(F.q.toLowerCase())<0)return false}
+ return true})}
+function setF(k,v){F[k]=F[k]===v?"":v;render()}
+function facet(key,label,vals,cnt){return `<div class="fg"><b>${label}</b>
+ ${vals.map(v=>`<button class="fo" aria-pressed="${F[key]===v}" onclick="setF('${key}','${v}')">${v}<span class="c">${cnt(v)}</span></button>`).join("")}</div>`}
+function viewList(){
+ const res=sorted(filtered());
+ const cnt=(k,v)=>DB.items.filter(i=>k==='grp'?i.grp===v:k==='field'?i.field===v:k==='ptype'?i.ptype===v:
+  k==='txn'?i.txn===v:k==='aud'?i.audience.indexOf(v)>=0:k==='purpose'?i.purpose.indexOf(v)>=0:false).length;
+ const chips=[["grp",F.grp],["fmt",F.fmt],["field",F.field],["ptype",F.ptype],["txn",F.txn],["aud",F.aud],
+  ["purpose",F.purpose],["stream",F.stream?"毎週更新":""],["q",F.q?`「${F.q}」`:""]].filter(x=>x[1]);
+ return `<div class="wrap" style="padding-top:22px">
+ <button class="back" onclick="go('home')">← ホーム</button>
+ <div class="toolbar"><span class="cnt">${res.length}<span>件</span></span>${sortSel()}</div>
+ ${chips.length?`<div class="chipbar">${chips.map(c=>`<button class="chip" onclick="F['${c[0]}']=${c[0]==='stream'?'false':"''"};render()">${esc(c[1])} ×</button>`).join("")}
+  <button class="chip" style="background:#fff;color:var(--ink3);border:1px solid var(--rule2)" onclick="resetF();render()">すべて解除</button></div>`:""}
+ <div class="layout">
+  <div class="facets">
+   ${facet("grp","何をしたいか",DB.groups,v=>cnt('grp',v))}
+   ${facet("aud","だれに",DB.audiences,v=>cnt('aud',v))}
+   ${facet("purpose","目的",DB.purposes,v=>cnt('purpose',v))}
+   ${facet("txn","申し込み方",DB.txns.filter(t=>cnt('txn',t)),v=>cnt('txn',v))}
+   ${facet("field","分野",DB.fields,v=>cnt('field',v))}
+   ${facet("ptype","届けている人",DB.ptypes,v=>cnt('ptype',v))}
+  </div>
+  <div>${res.length?`<div class="grid">${res.map(card).join("")}</div>`:`<div class="empty">条件に合うものがありません。<br>絞り込みを1つ外してみてください。</div>`}</div>
+ </div></div>`}
+
+function matRow(m){
+ const sh=m.shop||{};
+ const has=!!(sh.amazon||sh.rakuten||sh.rakuten_travel);
+ const buy=m.review_state==="auto_ok"&&has;
+ return `<div class="mat">
+  <div class="mtop"><b>${esc(m.name)}</b>
+   <span class="mb ${m.consumable?"con":"dur"}">${m.consumable?"毎回いる":"くり返し使える"}</span>
+   ${m.likely_owned?`<span class="mb own">学校にあることが多い</span>`:""}
+   ${m.safety?`<span class="mb saf">安全確認</span>`:""}</div>
+  <div class="mmeta">目安 ${m.band}${m.substitute?`　／　${esc(m.substitute)}`:""}</div>
+  ${m.safety?`<div class="msaf">${esc(m.safety)}</div>`:""}
+  ${buy?`<div class="mbuy">
+    ${sh.amazon?`<a class="mlink" target="_blank" rel="nofollow sponsored noopener" href="${sh.amazon}">Amazonで見る</a>`:""}
+    ${sh.rakuten?`<a class="mlink" target="_blank" rel="nofollow sponsored noopener" href="${sh.rakuten}">楽天で見る</a>`:""}
+    ${sh.rakuten_travel?`<a class="mlink" target="_blank" rel="nofollow sponsored noopener" href="${sh.rakuten_travel}">近くの宿を見る</a>`:""}</div>`
+   :m.review_state!=="auto_ok"
+    ?`<div class="mmeta" style="color:var(--pract);font-weight:800">安全に関わるため、確認がすむまで購入先を出していません</div>`
+    :`<div class="mmeta">${m.cat==="移動"||m.cat==="入場"?"物販の対象ではありません。金額の目安のみ表示しています":"購入先はまだ登録されていません"}</div>`}</div>`}
+function matBlock(i){
+ if(!i.mats||!i.mats.length)return "";
+ const con=i.mats.filter(m=>m.consumable).length;
+ return `<section><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:19px">この活動に必要なもの</h2>
+   <span class="sub">${i.mats.length}点（うち毎回いるもの ${con}点）</span></div>
+  <p class="hint">本文から自動で分解した暫定の一覧です。実施した人の記録が集まると、実際に使われた量と代用例に置き換わります。</p>
+  <div class="mats">${i.mats.map(matRow).join("")}</div>
+  <p class="disc">${DB.disclosure_goods}</p></section>`}
+function shopList(list){
+ const agg={};
+ list.forEach(i=>(i.mats||[]).forEach(m=>{if(!agg[m.name])agg[m.name]=Object.assign({},m,{n:0});agg[m.name].n++}));
+ const arr=Object.keys(agg).map(k=>agg[k]).sort((a,b)=>(b.consumable-a.consumable)||(b.n-a.n)).slice(0,10);
+ if(!arr.length)return "";
+ return `<section><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:19px">この一式でよく要るもの</h2>
+  <span class="sub">${arr.length}点。先にそろえておけば、どれを選んでも足ります</span></div>
+  <div class="mats">${arr.map(matRow).join("")}</div>
+  <p class="disc">${DB.disclosure_goods}</p></section>`}
+
+function viewHub(){
+ if(hub.kind==="verb"){
+  const g=hub.key,v=VERB[g],list=sorted(DB.items.filter(i=>i.grp===g));
+  const fmts=[];list.forEach(i=>{if(fmts.indexOf(i.fmt)<0)fmts.push(i.fmt)});
+  return `<div class="wrap" style="padding-top:22px">
+  <button class="back" onclick="go('home')">← ホーム</button>
+  <div class="hubhead" style="background:${v.c}"><span class="big">${list.length}</span><h1>${g}</h1><p>${v.d}。${v.lead}</p></div>
+  <div class="subbar">${fmts.map(f=>`<button class="subchip" onclick="resetF();F.grp='${g}';F.fmt='${f}';go('list')">${f}<i>${list.filter(i=>i.fmt===f).length}</i></button>`).join("")}</div>
+  <div class="toolbar" style="margin-top:22px"><span class="cnt">${list.length}<span>件</span></span>${sortSel()}</div>
+  <div class="grid">${list.map(card).join("")}</div></div>`}
+ if(hub.kind==="post"){
+  const p=POSTS.filter(x=>x.key===hub.key)[0];
+  return `<div class="wrap" style="padding-top:22px;max-width:880px">
+  <button class="back" onclick="go('home')">← ホーム</button>
+  <div class="hubhead" style="background:${p.color}"><span class="big">${p.n}</span><h1>${p.title}</h1><p>${p.lead}</p></div>
+  <div class="howto"><h3>手順</h3><ol>${p.steps.map(x=>`<li>${x}</li>`).join("")}</ol><div class="warn">${p.warn}</div></div>
+  <section><div class="sec-hd"><h2 style="font-size:20px">この経路で書けること／書けないこと</h2></div>
+   <div class="box box-claim"><span class="bt">書けること</span><ul>${p.can.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+   <div class="box box-empty"><span class="bt">書けないこと</span><ul>${p.cannot.map(x=>`<li>${x}</li>`).join("")}</ul></div></section>
+  <div class="cta-row"><button class="btn" onclick="alert('この試作では入力フォームは未実装です。')">この経路で掲載をはじめる</button></div></div>`}
+ if(hub.kind==="rescue"){
+  return `<div class="wrap" style="padding-top:22px">
+  <button class="back" onclick="go('home')">← ホーム</button>
+  <div class="hubhead" style="background:#12151c"><h1>時間がない人へ</h1>
+   <p>探す時間がないときのための一式です。選択肢は3つだけ。締切から選んでください。</p></div>
+  <div class="packs">${PACKS.map(p=>`<button class="pack" onclick="openHub('pack','${p.key}')">
+   <span class="tag2">${p.tag}</span><h3>${p.title}</h3>
+   <div class="spec">${p.specs.map(x=>`<div>${x}</div>`).join("")}</div>
+   <div class="ev">${p.ev}</div></button>`).join("")}</div></div>`}
+ const p=PACKS.filter(x=>x.key===hub.key)[0],list=sorted(DB.items.filter(p.filter));
+ return `<div class="wrap" style="padding-top:22px">
+ <button class="back" onclick="openHub('rescue','')">← 時間がない人へ</button>
+ <div class="hubhead" style="background:${p.color}"><h1>${p.title}</h1><p>${p.lead}</p></div>
+ <div class="howto"><h3>この一式に入っているもの</h3><ul>${p.inside.map(x=>`<li>${x}</li>`).join("")}</ul>
+  <div class="warn">${p.ev}</div></div>
+ ${shopList(list)}
+ <div class="toolbar" style="margin-top:22px"><span class="cnt">${list.length}<span>件</span></span>${sortSel()}</div>
+ <div class="grid">${list.map(card).join("")}</div></div>`}
+
+function viewDetail(){
+ const i=it(curId);
+ const main={"無料":"見に行く","購入（買い切り）":"買えるところへ","予約（日時指定）":"日時を見て予約する",
+  "要見積もり":"相談・依頼する","サブスク":"申し込む","フリーミアム":"試してみる"}[i.txn]||"見に行く";
+ return `<div class="wrap" style="padding-top:22px;max-width:880px">
+ <button class="back" onclick="go('list')">← 一覧にもどる</button>
+ <div class="calm"><div class="band" style="${th(i)}"></div>
+  <p class="hint" style="margin-top:14px">${i.fmt}｜${i.field||"分野をまたぐもの"}${i.since?"｜"+i.since+"年から":""}</p>
+  <div style="display:flex;gap:14px;align-items:flex-start">
+   <span class="favbig">${fav(i.url,28)}</span>
+   <span><h1 style="font-size:27px;font-weight:900">${esc(i.title)}</h1>
+   <p style="color:var(--ink3);font-size:13px;margin:5px 0 0;font-weight:600">${esc(i.provider)}
+    <span class="tag">${i.ptype}</span><span class="tag">${host(i.url)}</span></p></span></div>
+  <p style="color:var(--ink2);margin-top:12px">${esc(i.desc)}</p>
+  <p style="font-size:22px;font-weight:900;margin-top:14px">${money(i)}</p>
+  <div>${i.topics.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+  <div class="cta-row"><a class="btn" target="_blank" rel="noopener" href="${i.url}">${main}</a></div></div>
+ ${matBlock(i)}
+ <section><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:19px">この掲載への反応</h2>
+   <span class="sub">優劣ではなく、どんな出会い方をされたか</span></div>${rxBar(i.id,true)}</section>
+ <section><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:19px">2つの情報を、分けて表示しています</h2></div>
+  <p class="hint">①は提供者が示した条件、②はプリズム上で実際に起きたことです。①が②に書き換えられることはありません。</p>
+  <div class="box box-claim"><span class="bt">① 提供者が示している条件</span>
+   <ul><li>対象：${i.audience.join("・")||"記載なし"}</li><li>規模：${i.scale||"記載なし"}／レベル：${i.level||"記載なし"}</li>
+    <li>目的：${i.purpose.join("・")||"記載なし"}</li><li>申し込み：${i.txn}</li></ul></div>
+  <div class="box box-empty"><span class="bt">② プリズムに登録された実施</span>
+   <p style="margin:0">実施記録は、まだありません。</p>
+   <p style="margin:8px 0 0;font-size:12.5px">記録の投稿にはサーバー側の仕組みが必要です（未実装）。</p></div>
+ </section>
+ <section><div class="sec-hd"><h2 style="font-size:19px">同じ種類の届け手から</h2></div>
+  <div class="grid" style="grid-template-columns:repeat(2,1fr)">${DB.items.filter(x=>x.ptype===i.ptype&&x.id!==i.id).slice(0,4).map(card).join("")}</div></section>
+ </div>`}
+
+function viewPublish(){return `<div class="wrap" style="padding-top:22px;max-width:900px">
+ <button class="back" onclick="go('home')">← ホーム</button>
+ <h1 style="font-size:32px;font-weight:900">掲載する</h1>
+ <p class="hint">3つの経路。書ける範囲がそれぞれ違います。</p>
+ <div class="tiles" style="margin-top:16px">${POSTS.map(p=>`<button class="tile" style="background:${p.color}" onclick="openHub('post','${p.key}')">
+  <span class="n">${p.n}</span><b style="font-size:19px">${p.title}</b><span>${p.who}</span></button>`).join("")}</div></div>`}
+
+function render(){const V={home:viewHome,list:viewList,detail:viewDetail,publish:viewPublish,hub:viewHub};
+ document.getElementById("app").innerHTML=V[view]()}
+seedRx();render();
+</script></body></html>
