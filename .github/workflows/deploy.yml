@@ -2,10 +2,10 @@ name: build and deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main]          # CSVを直せば、そのたびに公開まで自動で進む
   schedule:
-    - cron: "0 20 * * *"
-  workflow_dispatch:
+    - cron: "0 20 * * *"      # 毎日 UTC20:00 = 日本時間 朝5時
+  workflow_dispatch:          # Actions画面のボタンから手動実行もできる
 
 permissions:
   contents: read
@@ -25,32 +25,32 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: setting check
+      - name: 設定の確認（値は表示されません）
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
           AI_ENDPOINT: ${{ secrets.AI_ENDPOINT }}
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
           AMAZON_TAG: ${{ secrets.AMAZON_TAG }}
         run: |
-          chk() { if [ -n "$2" ]; then echo "  OK   $1"; else echo "  MISSING $1"; fi }
-          echo "Secrets:"
+          chk() { if [ -n "$2" ]; then echo "  OK   $1"; else echo "  未設定 $1"; fi }
+          echo "登録されているSecrets:"
           chk SHEET_ID      "$SHEET_ID"
           chk AI_ENDPOINT   "$AI_ENDPOINT"
           chk CONTACT_EMAIL "$CONTACT_EMAIL"
           chk AMAZON_TAG    "$AMAZON_TAG"
 
-      - name: sync
+      - name: スプレッドシートから取り込む
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: python3 run.py sync --out data/listings.csv
 
-      - name: decompose
+      - name: 物品分解
         run: python3 run.py decompose --in data/listings.csv --out data/materials.csv
 
-      - name: coverage
+      - name: 網羅の穴を確認
         run: python3 run.py coverage --in data/listings.csv
 
-      - name: build
+      - name: サイトを組み立てる
         env:
           AMAZON_TAG: ${{ secrets.AMAZON_TAG }}
           RAKUTEN_ID: ${{ secrets.RAKUTEN_ID }}
