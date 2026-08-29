@@ -432,15 +432,22 @@ async function askAI(q){
  if(!q||!q.trim())return;
  AI.q=q; AI.error=""; AI.answer=""; AI.ids=[];
  if(!AI_ENDPOINT||AI_ENDPOINT.indexOf("__")===0){
-  AI.error="AIの接続先が設定されていません。README の「AIに聞く を有効にする」を参照してください。";render();return}
+  AI.error="AIの接続先が設定されていません。GitHub の Secrets に AI_ENDPOINT を登録し、Actions を再実行してください。";
+  render();return}
  AI.loading=true; render();
  try{
-  const res=await fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify({q:q})});
-  const d=await res.json();
+  // POSTだと /exec のリダイレクトでGETに化けることがあるため、最初からGETで送る
+  const url=AI_ENDPOINT+(AI_ENDPOINT.indexOf("?")<0?"?":"&")+"q="+encodeURIComponent(q);
+  const res=await fetch(url,{method:"GET"});
+  const raw=await res.text();
+  let d;
+  try{ d=JSON.parse(raw) }
+  catch(_){ AI.error="接続先が想定外の応答を返しました。/exec のURLか、デプロイの「アクセスできるユーザー：全員」を確認してください。";
+            AI.loading=false; render(); return }
+  if(d.error){ AI.error="AI側のエラー："+d.error; AI.loading=false; render(); return }
   AI.answer=d.answer||""; AI.ids=(d.ids||[]).map(Number).filter(n=>!!it(n));
   if(!AI.answer&&!AI.ids.length)AI.error="候補が見つかりませんでした。条件を変えて試してください。";
- }catch(e){AI.error="接続に失敗しました（"+e.message+"）"}
+ }catch(e){AI.error="接続に失敗しました（"+e.message+"）。ブラウザの再読み込み（Ctrl+Shift+R）も試してください。"}
  AI.loading=false; render();
 }
 function filtered(){return DB.items.filter(function(i){
