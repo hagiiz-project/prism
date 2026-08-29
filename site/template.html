@@ -177,6 +177,43 @@ section{margin-top:50px}
 .mlink{font-size:12.5px;font-weight:900;border:1px solid var(--rule2);border-radius:999px;padding:6px 14px;text-decoration:none}
 .mlink:hover{border-color:var(--ink);background:var(--soft)}
 .disc{font-size:11.5px;color:var(--ink3);margin-top:12px;font-weight:600;line-height:1.8}
+
+/* コーナー帯（右から左へ流れる） */
+.corners{overflow:hidden;margin-top:16px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.cmarq{display:flex;gap:14px;width:max-content;animation:cslide 52s linear infinite}
+.corners:hover .cmarq{animation-play-state:paused}
+@keyframes cslide{to{transform:translateX(-50%)}}
+.corner{flex:0 0 380px;height:112px;border-radius:20px;padding:18px 22px;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;transition:.2s;isolation:isolate}
+.corner:hover{transform:translateY(-4px)}
+.corner::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(120% 100% at 8% 0%,rgba(255,255,255,.34),transparent 62%)}
+.corner b{font-size:19px;font-weight:900;letter-spacing:-.02em;line-height:1.35}
+.corner span{font-size:12px;margin-top:5px;opacity:.95;font-weight:600}
+.corner .soon{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.9);color:#12151c;border-radius:999px;padding:2px 10px;font-size:10px;font-weight:900}
+@media(max-width:600px){.corner{flex:0 0 300px;height:104px}.corner b{font-size:17px}}
+/* 自由研究コーナー */
+.qbig{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media(max-width:760px){.qbig{grid-template-columns:1fr}}
+.qcard{border:2px solid var(--ink);border-radius:22px;padding:22px 24px;background:#fff;transition:.2s;box-shadow:5px 5px 0 var(--ink)}
+.qcard:hover{transform:translateY(-4px);box-shadow:8px 8px 0 var(--ink)}
+.qcard b{font-size:21px;font-weight:900;display:block}
+.qcard p{margin:8px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.8}
+.qcard[aria-pressed=true]{background:var(--ink);color:#fff;box-shadow:5px 5px 0 #f5b700}
+.qcard[aria-pressed=true] p{color:#d6dce4}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 4px;font-size:12.5px;font-weight:800;color:var(--ink3)}
+.steps .on{color:var(--ink)}
+/* AIに聞く */
+.ask{background:#0c1016;border-radius:26px;padding:26px 28px;color:#e9eef5;margin-top:16px}
+.ask h2{font-size:23px;font-weight:900;color:#fff}
+.ask p{margin:8px 0 0;font-size:13.5px;color:#9fb0c2}
+.askbox{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.askbox input{flex:1 1 320px;border:0;border-radius:999px;padding:14px 20px;font:inherit;font-size:15px;font-weight:600}
+.askbox button{background:#fff;color:#12151c;border-radius:999px;padding:14px 28px;font-weight:900;font-size:15px}
+.askex{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.askex button{background:#1b2430;border:1px solid #2b3644;color:#c3d0de;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:700}
+.askex button:hover{border-color:#5b7086;color:#fff}
+.answer{background:#161d27;border:1px solid #26313e;border-radius:16px;padding:16px 18px;margin-top:16px;font-size:14px;line-height:1.85}
+.answer .lab{font-size:11px;font-weight:900;letter-spacing:.08em;color:#ffb08a;display:block;margin-bottom:6px}
+.answer .warn{margin-top:12px;padding-top:10px;border-top:1px solid #26313e;font-size:11.5px;color:#8fa2b7}
 footer{margin-top:64px;border-top:1px solid var(--rule);padding:24px 0 70px;font-size:12px;color:var(--ink3);line-height:1.95}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
@@ -258,7 +295,21 @@ const POSTS=[
   steps:["URLか、どこで見たかを書く","おもしろかった点を1文で書く","公開する（提供者は後から名乗り出て引き取れます）"],
   warn:"提供者の意図が確認できないものは①の欄を空のままにします。埋めません。推測で埋めると、提供者が言っていないことを言わせることになります。"}];
 
+const AI_ENDPOINT="__AI_ENDPOINT__";
+const CORNERS=[
+ {key:"jiyu",   ready:true,  color:"#ff6b2c", title:"ママ・パパ必見!!　子供の自由研究",
+  sub:"一緒にやる？ 一人でやらせる？ そこから選べます"},
+ {key:"otona",  ready:false, color:"#3b5bff", title:"大人の自由研究、あの頃の好奇心を今満たす。",
+  sub:"準備中"},
+ {key:"reskill",ready:false, color:"#00b36b", title:"リスキリングでお小遣いUP！",
+  sub:"準備中"},
+ {key:"nande",  ready:false, color:"#8b5cf6", title:"子供のナンデを「分かった!!」に導くTips集",
+  sub:"準備中"},
+ {key:"fuyu",   ready:false, color:"#00a3ad", title:"冬休みの宿題も、この餅βでサクッと終わらせる！",
+  sub:"準備中"}];
 let view="home",curId=null,hub=null,sort="new";
+let JQ={mode:"",field:"",budget:""};   // 自由研究コーナーの選択状態
+let AI={q:"",loading:false,answer:"",ids:[],error:""};
 const F={grp:"",fmt:"",field:"",ptype:"",txn:"",aud:"",purpose:"",q:"",stream:false};
 function go(v){view=v;window.scrollTo(0,0);render()}
 function openHub(k,key){hub={kind:k,key:key};go('hub')}
@@ -330,6 +381,30 @@ function viewHome(){
    ${DB.audiences.map(a=>`<option>${a}</option>`).join("")}</select></div>
   <div class="sbgo"><button onclick="resetF();F.q=document.getElementById('q').value;F.grp=document.getElementById('g').value;F.aud=document.getElementById('a').value;go('list')">さがす</button></div>
  </div>
+ <section><div class="sec-hd"><h2>コーナー</h2><span class="sub">目的別の入り口。流れている帯から選べます</span></div>
+  <div class="corners"><div class="cmarq">${CORNERS.concat(CORNERS).map(c=>`
+   <button class="corner" style="background:${c.color}" onclick="${c.ready?`openHub('corner','${c.key}')`:`alert('このコーナーは準備中です。')`}">
+    ${c.ready?"":'<span class="soon">準備中</span>'}
+    <b>${c.title}</b><span>${c.sub}</span></button>`).join("")}</div></div>
+ </section>
+
+ <section><div class="ask">
+   <h2>AIに聞く</h2>
+   <p>やりたいことを、そのまま文章で書いてください。${DB.items.length}件の中から候補を選んで理由を答えます。</p>
+   <div class="askbox">
+    <input id="aiq" value="${esc(AI.q)}" placeholder="例：小4の35人に45分で防災を伝えたい。準備は20分しかない"
+     onkeydown="if(event.key==='Enter')askAI(this.value)">
+    <button onclick="askAI(document.getElementById('aiq').value)">${AI.loading?"考えています…":"聞いてみる"}</button>
+   </div>
+   <div class="askex">${["小4の35人に45分で防災を伝えたい","家で3日でできる自由研究","中学生に研究者の仕事を伝えたい","無料で使える動画教材"]
+     .map(x=>`<button onclick="askAI('${x}')">${x}</button>`).join("")}</div>
+   ${AI.error?`<div class="answer"><span class="lab">つながりませんでした</span>${esc(AI.error)}</div>`:""}
+   ${AI.answer?`<div class="answer"><span class="lab">AIの回答</span>${esc(AI.answer)}
+     <div class="warn">価格・対象・URLは、AIの文章ではなく下のカードの内容（提供者の情報）をご確認ください。</div></div>`:""}
+  </div>
+  ${AI.ids.length?`<div class="grid" style="margin-top:16px">${AI.ids.map(id=>it(id)).filter(Boolean).map(card).join("")}</div>`:""}
+ </section>
+
  <section><div class="sec-hd"><h2>何をしたいかで選ぶ</h2>
    <span class="sub">分野ではなく動詞で。${noField}件は分野に収まりません</span>
    <button class="more" onclick="resetF();go('list')">すべて見る</button></div>
@@ -353,6 +428,21 @@ function viewHome(){
  掲載${DB.items.length}件は実在の提供者です。価格の一部とリアクション数はダミーです。アイコンは各提供者サイトのファビコンです。<br>
  掲載の削除・修正のご依頼はこちらまで： <a href="mailto:REPLACE_WITH_YOUR_EMAIL">REPLACE_WITH_YOUR_EMAIL</a></footer></div>`}
 
+async function askAI(q){
+ if(!q||!q.trim())return;
+ AI.q=q; AI.error=""; AI.answer=""; AI.ids=[];
+ if(!AI_ENDPOINT||AI_ENDPOINT.indexOf("__")===0){
+  AI.error="AIの接続先が設定されていません。README の「AIに聞く を有効にする」を参照してください。";render();return}
+ AI.loading=true; render();
+ try{
+  const res=await fetch(AI_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({q:q})});
+  const d=await res.json();
+  AI.answer=d.answer||""; AI.ids=(d.ids||[]).map(Number).filter(n=>!!it(n));
+  if(!AI.answer&&!AI.ids.length)AI.error="候補が見つかりませんでした。条件を変えて試してください。";
+ }catch(e){AI.error="接続に失敗しました（"+e.message+"）"}
+ AI.loading=false; render();
+}
 function filtered(){return DB.items.filter(function(i){
  if(F.grp&&i.grp!==F.grp)return false;
  if(F.fmt&&i.fmt!==F.fmt)return false;
@@ -427,7 +517,60 @@ function shopList(list){
   <div class="mats">${arr.map(matRow).join("")}</div>
   <p class="disc">${DB.disclosure_goods}</p></section>`}
 
+function setJQ(k,v){JQ[k]=JQ[k]===v?"":v;render()}
+const JQ_MODE={
+ "together":{label:"一緒にやりたい",lead:"保護者が横についてやる前提です。準備は大人がやり、子どもは手を動かすところに集中できます。",
+  test:i=>i.audience.indexOf("未就学児")>=0||i.audience.indexOf("小学生")>=0||i.audience.indexOf("全年齢")>=0},
+ "alone":{label:"自律的にやってほしい",lead:"子どもが一人で進められることを優先します。手順が分かれ、途中で大人に聞かなくても進むものを選びます。",
+  test:i=>i.audience.indexOf("中学生")>=0||i.audience.indexOf("高校生")>=0||i.audience.indexOf("小学生")>=0}};
+const JQ_BUDGET={
+ "free":{label:"お金をかけない",test:i=>i.txn==="無料"||!Number(i.price)},
+ "u3000":{label:"3,000円まで",test:i=>Number(i.price)>0&&Number(i.price)<=3000},
+ "over":{label:"3,000円以上でもよい",test:i=>Number(i.price)>3000}};
+function jqList(){
+ return DB.items.filter(function(i){
+  if(!(i.purpose.indexOf("探究・自由研究")>=0||i.purpose.indexOf("家庭で楽しむ")>=0))return false;
+  if(JQ.mode&&!JQ_MODE[JQ.mode].test(i))return false;
+  if(JQ.field&&i.field!==JQ.field)return false;
+  if(JQ.budget&&!JQ_BUDGET[JQ.budget].test(i))return false;
+  return true})}
+function viewCornerJiyu(){
+ const list=sorted(jqList());
+ const fields=[];DB.items.forEach(i=>{if(i.field&&fields.indexOf(i.field)<0)fields.push(i.field)});
+ return `<div class="wrap" style="padding-top:22px">
+ <button class="back" onclick="go('home')">← ホーム</button>
+ <div class="hubhead" style="background:#ff6b2c"><h1>ママ・パパ必見!!<br>子供の自由研究</h1>
+  <p>テーマが決まらない、何を買えばいいか分からない、そもそも親がどこまで手を出すのか分からない。順番に決めていきます。</p></div>
+ <div class="steps"><span class="${JQ.mode?"":"on"}">1 どう関わるか</span>→
+  <span class="${JQ.mode&&!JQ.field?"on":""}">2 どの科学か</span>→
+  <span class="${JQ.field?"on":""}">3 予算</span></div>
+ <section style="margin-top:14px"><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:20px">1　どう関わりますか</h2></div>
+  <div class="qbig">${Object.keys(JQ_MODE).map(k=>`
+   <button class="qcard" aria-pressed="${JQ.mode===k}" onclick="setJQ('mode','${k}')">
+    <b>${JQ_MODE[k].label}</b><p>${JQ_MODE[k].lead}</p></button>`).join("")}</div>
+ </section>
+ <section><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:20px">2　対象とする科学</h2>
+   <span class="sub">決めなくても進めます</span></div>
+  <div class="subbar">${fields.map(f=>`<button class="subchip" aria-pressed="${JQ.field===f}"
+   style="${JQ.field===f?"background:#12151c;color:#fff;border-color:#12151c":""}"
+   onclick="setJQ('field','${f}')">${f}<i style="${JQ.field===f?"color:#c3d0de":""}">${DB.items.filter(i=>i.field===f).length}</i></button>`).join("")}</div>
+ </section>
+ <section><div class="sec-hd" style="margin-bottom:6px"><h2 style="font-size:20px">3　予算から選ぶ</h2></div>
+  <div class="subbar">${Object.keys(JQ_BUDGET).map(k=>`<button class="subchip" aria-pressed="${JQ.budget===k}"
+   style="${JQ.budget===k?"background:#12151c;color:#fff;border-color:#12151c":""}"
+   onclick="setJQ('budget','${k}')">${JQ_BUDGET[k].label}</button>`).join("")}</div>
+ </section>
+ <div class="toolbar" style="margin-top:26px"><span class="cnt">${list.length}<span>件</span></span>${sortSel()}</div>
+ ${list.length?`${shopList(list)}<div class="grid">${list.map(card).join("")}</div>`
+  :`<div class="empty">条件に合うものがありません。<br>予算か分野をひとつ外してみてください。</div>`}
+ </div>`}
+
 function viewHub(){
+ if(hub.kind==="corner"){
+  if(hub.key==="jiyu")return viewCornerJiyu();
+  const c=CORNERS.filter(x=>x.key===hub.key)[0];
+  return `<div class="wrap" style="padding-top:22px"><button class="back" onclick="go('home')">← ホーム</button>
+   <div class="hubhead" style="background:${c.color}"><h1>${c.title}</h1><p>このコーナーは準備中です。</p></div></div>`}
  if(hub.kind==="verb"){
   const g=hub.key,v=VERB[g],list=sorted(DB.items.filter(i=>i.grp===g));
   const fmts=[];list.forEach(i=>{if(fmts.indexOf(i.fmt)<0)fmts.push(i.fmt)});

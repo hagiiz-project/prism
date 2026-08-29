@@ -57,12 +57,18 @@ def main(a):
     here = os.path.dirname(os.path.abspath(__file__))
     tpl = open(os.path.join(here, "template.html"), encoding="utf-8").read()
     html = tpl.replace("__PRISM_DATA__", json.dumps(db, ensure_ascii=False))
+    html = html.replace("__AI_ENDPOINT__", os.environ.get("AI_ENDPOINT", ""))
+    html = html.replace("REPLACE_WITH_YOUR_EMAIL", os.environ.get("CONTACT_EMAIL", "REPLACE_WITH_YOUR_EMAIL"))
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     open(a.out, "w", encoding="utf-8").write(html)
     nm = sum(len(i["mats"]) for i in items)
     print(f"{a.out}（{len(items)}件 / 物品 {nm}点 / {len(html.encode())//1024}KB）")
     if not os.environ.get("AMAZON_TAG"):
         print("※ AMAZON_TAG などが未設定のため、リンクはアフィリエイトIDなしの検索URLです。")
+    if not os.environ.get("AI_ENDPOINT"):
+        print("※ AI_ENDPOINT が未設定のため、「AIに聞く」は接続先なしの表示になります。")
+    if not os.environ.get("CONTACT_EMAIL"):
+        print("※ CONTACT_EMAIL が未設定です。フッターの連絡先が未設定のままです。")
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()

@@ -10,7 +10,7 @@
 """
 import argparse, csv, io, json, os, urllib.request
 from datetime import datetime, timezone
-from prism import schema, taxonomy, extract, decompose as dec, monetize, discover
+from prism import schema, taxonomy, extract, decompose as dec, monetize, discover, sheet
 
 NOW = lambda: datetime.now(timezone.utc).isoformat(timespec="seconds")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +75,20 @@ def cmd_submit(a):
         write_csv(a.csv, schema.LISTINGS, [listing])
         print(f"→ {a.csv} に1行書き出しました。data/listings.csv に貼り足してください。")
 
+def cmd_sync(a):
+    """Googleスプレッドシート → data/listings.csv"""
+    sid = a.sheet or os.environ.get("SHEET_ID", "")
+    if not sid:
+        print("SHEET_ID が指定されていません。--sheet か環境変数 SHEET_ID を設定してください。")
+        print("設定がないので、いまの data/listings.csv をそのまま使います。"); return
+    rows = sheet.parse(sheet.fetch(sid, a.name))
+    ok, ng = sheet.validate(rows)
+    write_csv(a.out, schema.LISTINGS, [{k: r.get(k, "") for k in schema.header(schema.LISTINGS)} for r in ok])
+    print(f"シートから {len(rows)}行 取得 → 公開 {len(ok)}件 / 見送り {len(ng)}件 → {a.out}")
+    for i, t, why in ng[:20]:
+        print(f"   {i}行目 {t[:28]:<30} {why}")
+    if len(ng) > 20: print(f"   ほか {len(ng)-20}件")
+
 def cmd_decompose(a):
     rows, out = rows_from(a.inp), []
     st = dict(n=0, con=0, gate=0, go=0)
@@ -118,6 +132,8 @@ if __name__ == "__main__":
     b.add_argument("--offline", action="store_true"); b.set_defaults(f=cmd_submit)
     c = s.add_parser("decompose"); c.add_argument("--in", dest="inp", default="data/listings.csv")
     c.add_argument("--out", default="data/materials.csv"); c.set_defaults(f=cmd_decompose)
+    e = s.add_parser("sync"); e.add_argument("--sheet"); e.add_argument("--name", default="listings")
+    e.add_argument("--out", default="data/listings.csv"); e.set_defaults(f=cmd_sync)
     d = s.add_parser("coverage"); d.add_argument("--in", dest="inp", default="data/listings.csv")
     d.set_defaults(f=cmd_coverage)
     a = p.parse_args(); a.f(a)
