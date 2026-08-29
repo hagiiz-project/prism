@@ -214,6 +214,30 @@ section{margin-top:50px}
 .answer{background:#161d27;border:1px solid #26313e;border-radius:16px;padding:16px 18px;margin-top:16px;font-size:14px;line-height:1.85}
 .answer .lab{font-size:11px;font-weight:900;letter-spacing:.08em;color:#ffb08a;display:block;margin-bottom:6px}
 .answer .warn{margin-top:12px;padding-top:10px;border-top:1px solid #26313e;font-size:11.5px;color:#8fa2b7}
+
+/* 意見・感想 */
+.fbwrap{display:grid;grid-template-columns:1.1fr .9fr;gap:20px;margin-top:16px}
+@media(max-width:900px){.fbwrap{grid-template-columns:1fr}}
+.fblist{display:flex;flex-direction:column;gap:12px;max-height:520px;overflow:auto;padding-right:4px}
+.fb{border:1px solid var(--rule);border-radius:16px;padding:15px 17px;background:#fff}
+.fb .who{font-size:12px;color:var(--ink3);font-weight:700}
+.fb .who b{color:var(--ink);font-size:13.5px;font-weight:900;margin-right:7px}
+.fb .who .role{background:var(--soft);border-radius:999px;padding:2px 9px;margin-left:6px;font-size:11px}
+.fb p{margin:8px 0 0;font-size:14px;line-height:1.85}
+.fb .reply{margin-top:11px;padding:11px 13px;background:var(--claim-bg);border-radius:12px;font-size:13.2px;line-height:1.8}
+.fb .reply b{display:block;font-size:11px;letter-spacing:.06em;color:var(--claim);margin-bottom:4px}
+.fbform{background:#fff;border:2px solid var(--ink);border-radius:22px;padding:22px 24px;box-shadow:6px 6px 0 var(--ink);align-self:start}
+.fbform h3{font-size:19px;font-weight:900}
+.fbform label{display:block;font-size:11.5px;font-weight:900;color:var(--ink3);letter-spacing:.06em;margin:14px 0 5px}
+.fbform input,.fbform select,.fbform textarea{width:100%;border:1px solid var(--rule2);border-radius:12px;padding:11px 13px;font:inherit;font-size:14.5px;background:#fbfbfb}
+.fbform textarea{min-height:120px;resize:vertical;line-height:1.8}
+.fbform input:focus,.fbform select:focus,.fbform textarea:focus{outline:none;border-color:var(--claim);background:#fff}
+.fbform .note{font-size:11.5px;color:var(--ink3);margin-top:10px;line-height:1.8;font-weight:600}
+.fbform .send{margin-top:14px;width:100%;background:var(--ink);color:#fff;border-radius:999px;padding:13px;font-weight:900;font-size:15px;text-align:center}
+.fbmsg{margin-top:12px;padding:12px 14px;border-radius:12px;font-size:13.5px;font-weight:700}
+.fbmsg.ok{background:#e8f6f1;color:var(--ok)}
+.fbmsg.ng{background:#fdeef4;color:#c2185b}
+.fbempty{border:1px dashed var(--rule2);border-radius:16px;padding:26px;text-align:center;color:var(--ink3);font-weight:700}
 footer{margin-top:64px;border-top:1px solid var(--rule);padding:24px 0 70px;font-size:12px;color:var(--ink3);line-height:1.95}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
@@ -310,6 +334,8 @@ const CORNERS=[
 let view="home",curId=null,hub=null,sort="new";
 let JQ={mode:"",field:"",budget:""};   // 自由研究コーナーの選択状態
 let AI={q:"",loading:false,answer:"",ids:[],error:""};
+let FB={list:[],loaded:false,sending:false,ok:"",error:""};
+const FB_ROLES=["教員・学校関係","保護者","研究者・専門家","科学館・団体","企業","学生","その他"];
 const F={grp:"",fmt:"",field:"",ptype:"",txn:"",aud:"",purpose:"",q:"",stream:false};
 function go(v){view=v;window.scrollTo(0,0);render()}
 function openHub(k,key){hub={kind:k,key:key};go('hub')}
@@ -421,6 +447,8 @@ function viewHome(){
    <p>進行表・準備物・配る紙まで入った一式です。来週の45分、9月1日の15分、あと10日の自由研究。締切から選べます。</p></span>
    <span class="arrow">見る →</span></button>
  </section>
+ ${fbSection()}
+
  <section><div class="sec-hd"><h2>届けている人たち</h2></div>
   <div class="subbar">${DB.ptypes.map(p=>`<button class="subchip" onclick="resetF();F.ptype='${p}';go('list')">${p}<i>${DB.items.filter(i=>i.ptype===p).length}</i></button>`).join("")}</div>
  </section>
@@ -450,6 +478,58 @@ async function askAI(q){
  }catch(e){AI.error="接続に失敗しました（"+e.message+"）。ブラウザの再読み込み（Ctrl+Shift+R）も試してください。"}
  AI.loading=false; render();
 }
+function epOK(){return AI_ENDPOINT&&AI_ENDPOINT.indexOf("__")!==0}
+async function loadFeedback(){
+ if(!epOK()||FB.loaded)return;
+ FB.loaded=true;
+ try{
+  const res=await fetch(AI_ENDPOINT+"?action=fb_list");
+  const d=await res.json();
+  FB.list=d.items||[]; render();
+ }catch(e){/* 読めなくてもサイトは動く */}
+}
+async function sendFeedback(){
+ const m=document.getElementById("fbmsg"), n=document.getElementById("fbname"), r=document.getElementById("fbrole");
+ const msg=(m&&m.value||"").trim();
+ if(msg.length<5){FB.error="内容が短すぎます。5文字以上でお書きください。";FB.ok="";render();return}
+ if(!epOK()){FB.error="送信先が設定されていません。";FB.ok="";render();return}
+ FB.sending=true;FB.error="";FB.ok="";render();
+ try{
+  const u=AI_ENDPOINT+"?action=fb_post&message="+encodeURIComponent(msg)
+   +"&name="+encodeURIComponent((n&&n.value||"").trim())
+   +"&role="+encodeURIComponent((r&&r.value||""))
+   +"&page="+encodeURIComponent(view);
+  const res=await fetch(u); const d=await res.json();
+  if(d.ok){FB.ok=d.message||"お送りいただきありがとうございます。"}
+  else{FB.error=d.error||"送信できませんでした。"}
+ }catch(e){FB.error="送信に失敗しました（"+e.message+"）"}
+ FB.sending=false;render();
+}
+function fbSection(){
+ return `<section><div class="sec-hd"><h2>みんなの声</h2>
+   <span class="sub">${FB.list.length?FB.list.length+"件":"このサイトへの意見・感想"}</span></div>
+  <div class="fbwrap">
+   <div>${FB.list.length?`<div class="fblist">${FB.list.map(f=>`
+     <div class="fb"><div class="who"><b>${esc(f.name)}</b>${f.role?`<span class="role">${esc(f.role)}</span>`:""}
+      <span style="margin-left:8px">${esc(f.at)}</span></div>
+      <p>${esc(f.message)}</p>
+      ${f.reply?`<div class="reply"><b>運営から</b>${esc(f.reply)}</div>`:""}</div>`).join("")}</div>`
+    :`<div class="fbempty">${epOK()?"まだ掲載されている声はありません。<br>最初の1件になっていただけると助かります。"
+      :"送信先が未設定のため、まだ表示できません。"}</div>`}</div>
+   <div class="fbform">
+    <h3>意見・感想を送る</h3>
+    <label for="fbname">お名前（任意）</label>
+    <input id="fbname" placeholder="匿名で構いません">
+    <label for="fbrole">お立場（任意）</label>
+    <select id="fbrole"><option value="">選ばない</option>${FB_ROLES.map(x=>`<option>${x}</option>`).join("")}</select>
+    <label for="fbmsg">ご意見・ご感想</label>
+    <textarea id="fbmsg" placeholder="使ってみて困ったこと、あったらいいもの、探しても見つからなかったものなど"></textarea>
+    <button class="send" onclick="sendFeedback()">${FB.sending?"送信しています…":"送信する"}</button>
+    <p class="note">いただいた内容は確認のうえ掲載します。すぐには表示されません。<br>
+     お名前を空欄にすると「匿名」と表示されます。連絡先は集めていません。</p>
+    ${FB.ok?`<div class="fbmsg ok">${esc(FB.ok)}</div>`:""}
+    ${FB.error?`<div class="fbmsg ng">${esc(FB.error)}</div>`:""}
+   </div></div></section>`}
 function filtered(){return DB.items.filter(function(i){
  if(F.grp&&i.grp!==F.grp)return false;
  if(F.fmt&&i.fmt!==F.fmt)return false;
@@ -658,5 +738,5 @@ function viewPublish(){return `<div class="wrap" style="padding-top:22px;max-wid
 
 function render(){const V={home:viewHome,list:viewList,detail:viewDetail,publish:viewPublish,hub:viewHub};
  document.getElementById("app").innerHTML=V[view]()}
-seedRx();render();
+seedRx();render();loadFeedback();
 </script></body></html>
