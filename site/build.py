@@ -20,6 +20,47 @@ def rows(p): return list(csv.DictReader(io.StringIO(open(p, encoding="utf-8-sig"
 def sp(v):   return [x for x in (v or "").split("|") if x]
 def tf(v):   return str(v).strip().upper() == "TRUE"
 
+def recent_stream(path, items_by_id, days_first=7, days_fallback=30, per_listing=2, total=20):
+    """今週の更新。7日で足りなければ30日に広げる。1掲載につき最大2件。"""
+    import datetime
+    if not path or not os.path.exists(path): return []
+    rows = list(csv.DictReader(io.StringIO(open(path, encoding="utf-8-sig").read())))
+    now = datetime.datetime.now(datetime.timezone.utc)
+    out = []
+    for r in rows:
+        t = (r.get("title") or "").strip()
+        if not t: continue
+        lid = str(r.get("listing_id") or "")
+        li = items_by_id.get(lid)
+        if not li: continue
+        raw = (r.get("published_at") or "").strip()
+        try:
+            d = datetime.datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            if d.tzinfo is None: d = d.replace(tzinfo=datetime.timezone.utc)
+        except Exception:
+            continue
+        out.append(dict(listing_id=int(lid), title=t[:90], url=(r.get("url") or li["url"]),
+                        at=d.strftime("%-m月%-d日") if os.name != "nt" else d.strftime("%m月%d日"),
+                        ts=d, provider=li["provider"], fmt=li["fmt"]))
+    out.sort(key=lambda x: x["ts"], reverse=True)
+
+    def pick(days):
+        lim = now - datetime.timedelta(days=days)
+        seen, res = {}, []
+        for x in out:
+            if x["ts"] < lim: continue
+            n = seen.get(x["listing_id"], 0)
+            if n >= per_listing: continue
+            seen[x["listing_id"]] = n + 1
+            res.append(x)
+            if len(res) >= total: break
+        return res
+
+    got = pick(days_first) or pick(days_fallback)
+    for x in got: x.pop("ts", None)
+    return got
+
+
 def main(a):
     mats = {}
     if a.materials and os.path.exists(a.materials):
@@ -46,13 +87,17 @@ def main(a):
             cta=CTA.get(r.get("txn",""), "見る"), price=r.get("priceNum") or r.get("price_num") or "",
             topics=sp(r.get("topics")), since=r.get("year_since",""),
             freq=r.get("更新頻度") or r.get("update_freq") or "",
+            last_item_at=(r.get("last_item_at") or "").strip()[:10],
             mats=mats.get(lid, [])))
     # 検索の語候補：topics の出現頻度から実際によく出る語を拾う
     from collections import Counter
     tc = Counter(t for i in items for t in i["topics"])
     topics_top = [t for t, n in tc.most_common(60) if n >= 2]
 
-    db = dict(items=items, groups=taxonomy.ACT_GROUPS, topics_top=topics_top,
+    by_id = {str(i["id"]): i for i in items}
+    stream = recent_stream(a.stream, by_id)
+
+    db = dict(items=items, groups=taxonomy.ACT_GROUPS, topics_top=topics_top, stream=stream,
         fields=sorted({i["field"] for i in items if i["field"]}),
         ptypes=sorted({i["ptype"] for i in items if i["ptype"]}),
         txns=taxonomy.TXNS, audiences=taxonomy.AUDIENCES,
@@ -67,7 +112,7 @@ def main(a):
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     open(a.out, "w", encoding="utf-8").write(html)
     nm = sum(len(i["mats"]) for i in items)
-    print(f"{a.out}（{len(items)}件 / 物品 {nm}点 / {len(html.encode())//1024}KB）")
+    print(f"{a.out}（{len(items)}件 / 物品 {nm}点 / 今週の更新 {len(stream)}件 / {len(html.encode())//1024}KB）")
     if not os.environ.get("AMAZON_TAG"):
         print("※ AMAZON_TAG などが未設定のため、リンクはアフィリエイトIDなしの検索URLです。")
     if not os.environ.get("AI_ENDPOINT"):
@@ -79,5 +124,6 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--listings", default="data/listings.csv")
     p.add_argument("--materials", default="data/materials.csv")
+    p.add_argument("--stream", default="data/stream.csv")
     p.add_argument("--out", default="_site/index.html")
     main(p.parse_args())
