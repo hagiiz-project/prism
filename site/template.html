@@ -31,7 +31,7 @@ header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.93);backdro
 .hero{padding:40px 0 8px;display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center}
 @media(max-width:940px){.hero{grid-template-columns:1fr;padding-top:26px;gap:22px}}
 .hero h1{font-size:clamp(32px,5.4vw,58px);font-weight:900;line-height:1.12}
-.hero h1 .g{background:var(--rainbow);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% 100%;animation:hue 9s linear infinite}
+.hero h1 .g{background:var(--rainbow);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:140% 100%}
 @keyframes hue{to{background-position:220% 0}}
 .hero p{margin:16px 0 0;font-size:16.5px;color:var(--ink2);max-width:34em}
 .stats{display:flex;gap:22px;margin-top:20px;flex-wrap:wrap}
@@ -238,6 +238,37 @@ section{margin-top:50px}
 .fbmsg.ok{background:#e8f6f1;color:var(--ok)}
 .fbmsg.ng{background:#fdeef4;color:#c2185b}
 .fbempty{border:1px dashed var(--rule2);border-radius:16px;padding:26px;text-align:center;color:var(--ink3);font-weight:700}
+
+/* 1文の入口 */
+.sentence{background:#fff;border:2px solid var(--ink);border-radius:24px;padding:24px 26px;box-shadow:8px 8px 0 var(--ink);margin-top:22px}
+.sent{font-size:clamp(17px,2.4vw,22px);font-weight:900;line-height:2.1;letter-spacing:-.01em}
+.sent select{font:inherit;font-size:inherit;font-weight:900;border:0;border-bottom:3px solid var(--claim);
+ background:#eef4fd;border-radius:8px 8px 0 0;padding:2px 8px;margin:0 4px;color:var(--claim);max-width:100%}
+.sent select:focus{outline:none;background:#dbe8fb}
+.sentgo{margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sentgo button{background:var(--ink);color:#fff;border-radius:999px;padding:13px 32px;font-weight:900;font-size:16px}
+.sentgo .n{font-size:13px;color:var(--ink3);font-weight:700}
+/* タブ */
+.tabs{display:flex;gap:6px;margin-top:22px;border-bottom:1px solid var(--rule)}
+.tabs button{padding:10px 18px;font-weight:900;font-size:14.5px;color:var(--ink3);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
+.tabbody{padding-top:16px}
+/* 語の候補 */
+.words{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.word{border:1px solid var(--rule2);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;background:#fff}
+.word:hover{border-color:var(--ink);background:var(--soft)}
+.wordlab{font-size:11.5px;font-weight:900;color:var(--ink3);letter-spacing:.06em;margin-top:16px}
+/* 性質の目盛り */
+.meters{padding:10px 15px 13px;border-top:1px solid var(--rule);margin-top:auto}
+.meter{display:flex;align-items:center;gap:8px;font-size:11.5px;margin-top:5px}
+.meter .lb{flex:0 0 58px;color:var(--ink3);font-weight:700}
+.meter .dots{flex:0 0 auto;letter-spacing:1px}
+.meter .dots i{font-style:normal;color:var(--rule2)}
+.meter .dots i.on{color:var(--ink)}
+.meter .tx{color:var(--ink2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* AIタブ内 */
+.askin{background:#0c1016;border-radius:20px;padding:20px 22px;color:#e9eef5}
+.askin p{margin:0 0 12px;font-size:13.5px;color:#9fb0c2}
 footer{margin-top:64px;border-top:1px solid var(--rule);padding:24px 0 70px;font-size:12px;color:var(--ink3);line-height:1.95}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
@@ -335,6 +366,51 @@ let view="home",curId=null,hub=null,sort="new";
 let JQ={mode:"",field:"",budget:""};   // 自由研究コーナーの選択状態
 let AI={q:"",loading:false,answer:"",ids:[],error:""};
 let FB={list:[],loaded:false,sending:false,ok:"",error:""};
+let TAB="cond";                       // cond=条件で探す / ai=文章で聞く
+let ROLE="", GOAL="";                 // 1文の入口。選ぶと以後ずっと保持する
+
+/* 役割ごとに、目的の選択肢・語の優先・カードで見せる情報が変わる。
+   audience 列は146件中53件が「全年齢」で分離しないため、purpose との組で判定する。 */
+const ROLES={
+ "小学生":        {goals:{"家でできる実験":{pu:["家庭で楽しむ"]},"自由研究のテーマ":{pu:["探究・自由研究"]},"見て楽しめる動画":{grp:"みる・きく"},"行ってみたい場所":{grp:"いく"}},
+                   words:["工作","昆虫","恐竜","星空","実験"], show:"一人でできるか・費用"},
+ "中高生":        {goals:{"探究のテーマ":{pu:["探究・自由研究"]},"研究者の話を聞く":{grp:"よぶ・あう"},"進路のヒント":{pu:["進路・キャリア"]},"見て学べる動画":{grp:"みる・きく"}},
+                   words:["プログラミング","宇宙","化学","データ","進路"], show:"一人でできるか・費用"},
+ "大学生・院生":  {goals:{"伝え方を学ぶ":{pu:["職能開発"]},"発信の場をさがす":{grp:"やってみる"},"自分の研究を届ける":{grp:"よぶ・あう"}},
+                   words:["科学コミュニケーション","対話","ワークショップ","研修"], show:"費用・規模"},
+ "保護者":        {goals:{"子どもと家でやれること":{pu:["家庭で楽しむ"]},"自由研究を手伝う":{pu:["探究・自由研究"]},"休日に行ける場所":{grp:"いく"},"買ってあげるもの":{grp:"つかう"}},
+                   words:["自由研究","観察","工作","プラネタリウム","恐竜"], show:"準備の重さ・費用・汚れ"},
+ "教員・学校":    {goals:{"授業で使う教材":{pu:["授業で使う"]},"出張授業を頼む":{grp:"よぶ・あう"},"校外学習の行き先":{grp:"いく"},"総合学習の題材":{pu:["探究・自由研究"]}},
+                   words:["防災","理科実験","出前授業","天気","地震"], show:"人数・所要時間・準備時間"},
+ "科学館・団体":  {goals:{"催しの題材をさがす":{grp:"やってみる"},"講師を呼ぶ":{grp:"よぶ・あう"},"展示に使う道具":{grp:"つかう"}},
+                   words:["サイエンスショー","ワークショップ","対話","展示"], show:"規模・準備の重さ"},
+ "企業・自治体":  {goals:{"啓発イベントを企画する":{pu:["啓発・広報"]},"講師を依頼する":{grp:"よぶ・あう"},"地域の活動をさがす":{pu:["地域活動"]}},
+                   words:["防災","健康","環境","食育"], show:"依頼か購入か・規模"},
+ "研究者":        {goals:{"自分の研究を伝える":{pu:["職能開発"]},"アウトリーチの場":{grp:"やってみる"},"伝え方を学ぶ":{pu:["職能開発"]}},
+                   words:["科学コミュニケーション","アウトリーチ","対話"], show:"規模・費用"}};
+
+function roleWords(){
+ const base=(ROLES[ROLE]&&ROLES[ROLE].words)||[];
+ const rest=DB.topics_top.filter(function(t){return base.indexOf(t)<0});
+ return base.filter(function(t){return DB.topics_top.indexOf(t)>=0||true}).concat(rest).slice(0,18);
+}
+function applySentence(){
+ resetF();
+ const g=ROLES[ROLE]&&ROLES[ROLE].goals[GOAL];
+ if(g){ if(g.grp)F.grp=g.grp; if(g.pu)F.purpose=g.pu[0]; }
+ go('list');
+}
+function sentenceCount(){
+ const g=ROLES[ROLE]&&ROLES[ROLE].goals[GOAL];
+ if(!g)return DB.items.length;
+ return DB.items.filter(function(i){
+  if(g.grp&&i.grp!==g.grp)return false;
+  if(g.pu&&i.purpose.indexOf(g.pu[0])<0)return false;
+  return true}).length;
+}
+function setRole(v){ROLE=v;GOAL="";render()}
+function setGoal(v){GOAL=v;render()}
+function setTab(v){TAB=v;render()}
 const FB_ROLES=["教員・学校関係","保護者","研究者・専門家","科学館・団体","企業","学生","その他"];
 const F={grp:"",fmt:"",field:"",ptype:"",txn:"",aud:"",purpose:"",q:"",stream:false};
 function go(v){view=v;window.scrollTo(0,0);render()}
@@ -356,19 +432,40 @@ function th(i){const c=SPEC[i.field];
 function flag(i){if(isStream(i))return `<span class="flag" style="background:var(--live)">毎週更新</span>`;
  if(i.txn==="要見積もり")return `<span class="flag" style="background:#2b3542">依頼して呼ぶ</span>`;
  if(i.txn==="予約（日時指定）")return `<span class="flag" style="background:#0057c2">日時指定</span>`;return ""}
+function meterPrep(i){
+ const ms=i.mats||[]; const buy=ms.filter(function(m){return m.consumable&&!m.likely_owned}).length;
+ const lv=Math.max(1,Math.min(5,Math.ceil((ms.length+buy)/3)));
+ return {lv:lv, tx:ms.length?("物品"+ms.length+"点・買うもの"+buy+"点"):"物品の記載なし"}}
+function meterScale(i){
+ const m={"1人":1,"少人数（2〜10）":2,"中規模（10〜50）":3,"大規模（50+）":5}[i.scale]||2;
+ return {lv:m, tx:i.scale||"記載なし"}}
+function meterCost(i){
+ const p=Number(i.price)||0;
+ if(i.txn==="無料")return {lv:1,tx:"無料"};
+ if(i.txn==="要見積もり")return {lv:4,tx:"要見積もり"};
+ if(!p)return {lv:2,tx:i.txn||"記載なし"};
+ const lv=p<=1000?2:p<=5000?3:p<=20000?4:5;
+ return {lv:lv, tx:"¥"+p.toLocaleString()}}
+function meterRow(lb,m){
+ let d="";for(let n=1;n<=5;n++)d+='<i class="'+(n<=m.lv?"on":"")+'">●</i>';
+ return `<div class="meter"><span class="lb">${lb}</span><span class="dots">${d}</span><span class="tx">${esc(m.tx)}</span></div>`}
+function meters(i){
+ return `<div class="meters">
+  ${meterRow("準備",meterPrep(i))}
+  ${meterRow("規模",meterScale(i))}
+  ${meterRow("費用",meterCost(i))}</div>`}
 function card(i){return `<div class="pc">
  <div class="thumb" style="${th(i)}" onclick="openItem(${i.id})">${flag(i)}
   ${i.field?"":`<span class="spec-badge">分野をまたぐ</span>`}
   <span class="kind">${i.fmt}</span><span class="fav">${fav(i.url,22)}</span></div>
  <div class="body" onclick="openItem(${i.id})"><h3>${esc(i.title)}</h3><p class="brand">${esc(i.provider)}</p>
-  <div class="foot"><span class="price">${money(i)}</span><span class="cta">${i.cta}</span></div>
-  <div class="meta none">${(i.mats||[]).length}点の準備物</div></div>
- ${rxBar(i.id)}</div>`}
-const SORTS=[["new","新しい順"],["old","古い順"],["r_hee","「へぇ！」が多い順"],["r_waku","「ワクワク」が多い順"],
- ["r_fumu","「ふむふむ」が多い順"],["r_suki","「すき」が多い順"],["r_yatte","「やってみたい」が多い順"],
- ["price_l","価格が安い順"],["price_h","価格が高い順"]];
+  <div class="foot"><span class="price">${money(i)}</span><span class="cta">${i.cta}</span></div></div>
+ ${meters(i)}</div>`}
+const SORTS=[["new","新しい順"],["old","古い順"],["prep_l","準備が軽い順"],["scale_h","規模が大きい順"],
+ ["price_l","費用が安い順"],["price_h","費用が高い順"]];
 function sorted(list){const a=list.slice();
- if(sort.indexOf("r_")===0){const k=sort.slice(2);return a.sort((x,y)=>rxCount(y.id,k)-rxCount(x.id,k))}
+ if(sort==="prep_l")return a.sort((x,y)=>meterPrep(x).lv-meterPrep(y).lv);
+ if(sort==="scale_h")return a.sort((x,y)=>meterScale(y).lv-meterScale(x).lv);
  if(sort==="new")return a.sort((x,y)=>(y.since||0)-(x.since||0));
  if(sort==="old")return a.sort((x,y)=>(x.since||9999)-(y.since||9999));
  if(sort==="price_l")return a.sort((x,y)=>(Number(x.price)||0)-(Number(y.price)||0));
@@ -398,37 +495,58 @@ function viewHome(){
    <p class="note">毎週なにか増えている場所。ここだけは、毎日開いても変わっています。</p>
    <div class="vwrap"><div class="vmarq">${stream.concat(stream).map(streamCard).join("")}</div></div></div>
  </div>
- <div class="searchbar">
-  <div class="sb"><label>なにを</label><input id="q" placeholder="防災、宇宙、顕微鏡、さかなクン…" aria-label="キーワード"
-   onkeydown="if(event.key==='Enter'){resetF();F.q=this.value;go('list')}"></div>
-  <div class="sb"><label>どうしたい</label><select id="g" aria-label="行動"><option value="">選ばない</option>
-   ${DB.groups.map(g=>`<option>${g}</option>`).join("")}</select></div>
-  <div class="sb"><label>だれに</label><select id="a" aria-label="対象"><option value="">選ばない</option>
-   ${DB.audiences.map(a=>`<option>${a}</option>`).join("")}</select></div>
-  <div class="sbgo"><button onclick="resetF();F.q=document.getElementById('q').value;F.grp=document.getElementById('g').value;F.aud=document.getElementById('a').value;go('list')">さがす</button></div>
+ <div class="sentence">
+  <div class="sent">わたしは
+   <select aria-label="立場" onchange="setRole(this.value)">
+    <option value="">…</option>
+    ${Object.keys(ROLES).map(r=>`<option ${ROLE===r?"selected":""}>${r}</option>`).join("")}
+   </select>で、
+   <select aria-label="探しているもの" onchange="setGoal(this.value)" ${ROLE?"":"disabled"}>
+    <option value="">${ROLE?"…":"まず立場を選んでください"}</option>
+    ${ROLE?Object.keys(ROLES[ROLE].goals).map(g=>`<option ${GOAL===g?"selected":""}>${g}</option>`).join(""):""}
+   </select>を探しています。</div>
+  <div class="sentgo">
+   <button onclick="applySentence()" ${ROLE&&GOAL?"":"disabled style=opacity:.4;cursor:not-allowed"}>さがす</button>
+   <span class="n">${ROLE&&GOAL?sentenceCount()+"件あります":"2つ選ぶと進めます"}</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+   <button role="tab" aria-selected="${TAB==='cond'}" onclick="setTab('cond')">ことばで探す</button>
+   <button role="tab" aria-selected="${TAB==='ai'}" onclick="setTab('ai')">文章で聞く</button>
+  </div>
+  <div class="tabbody">
+  ${TAB==='cond'?`
+   <div class="searchbar" style="margin-top:0;box-shadow:4px 4px 0 var(--rule2)">
+    <div class="sb"><label>キーワード</label><input id="q" placeholder="防災、宇宙、顕微鏡、さかなクン…" aria-label="キーワード"
+     onkeydown="if(event.key==='Enter'){resetF();F.q=this.value;go('list')}"></div>
+    <div class="sbgo"><button onclick="resetF();F.q=document.getElementById('q').value;go('list')">さがす</button></div>
+   </div>
+   <p class="wordlab">${ROLE?ROLE+"の方によく見られている言葉":"よく使われている言葉"}</p>
+   <div class="words">${roleWords().map(w=>`<button class="word" onclick="resetF();F.q='${w}';go('list')">${w}</button>`).join("")}</div>
+  `:`
+   <div class="askin">
+    <p>やりたいことを、そのまま文章で書いてください。${DB.items.length}件の中から候補を選んで理由を答えます。</p>
+    <div class="askbox">
+     <input id="aiq" value="${esc(AI.q)}" placeholder="例：小4の35人に45分で防災を伝えたい。準備は20分しかない"
+      onkeydown="if(event.key==='Enter')askAI(this.value)">
+     <button onclick="askAI(document.getElementById('aiq').value)">${AI.loading?"考えています…":"聞いてみる"}</button>
+    </div>
+    <div class="askex">${["小4の35人に45分で防災を伝えたい","家で3日でできる自由研究","中学生に研究者の仕事を伝えたい","無料で使える動画教材"]
+      .map(x=>`<button onclick="askAI('${x}')">${x}</button>`).join("")}</div>
+    ${AI.error?`<div class="answer"><span class="lab">つながりませんでした</span>${esc(AI.error)}</div>`:""}
+    ${AI.answer?`<div class="answer"><span class="lab">AIの回答</span>${esc(AI.answer)}
+      <div class="warn">価格・対象・URLは、AIの文章ではなく下のカードの内容（提供者の情報）をご確認ください。</div></div>`:""}
+   </div>
+   ${AI.ids.length?`<div class="grid" style="margin-top:16px">${AI.ids.map(id=>it(id)).filter(Boolean).map(card).join("")}</div>`:""}
+  `}
+  </div>
  </div>
+
  <section><div class="sec-hd"><h2>コーナー</h2><span class="sub">目的別の入り口。流れている帯から選べます</span></div>
   <div class="corners"><div class="cmarq">${CORNERS.concat(CORNERS).map(c=>`
    <button class="corner" style="background:${c.color}" onclick="${c.ready?`openHub('corner','${c.key}')`:`alert('このコーナーは準備中です。')`}">
     ${c.ready?"":'<span class="soon">準備中</span>'}
     <b>${c.title}</b><span>${c.sub}</span></button>`).join("")}</div></div>
- </section>
-
- <section><div class="ask">
-   <h2>AIに聞く</h2>
-   <p>やりたいことを、そのまま文章で書いてください。${DB.items.length}件の中から候補を選んで理由を答えます。</p>
-   <div class="askbox">
-    <input id="aiq" value="${esc(AI.q)}" placeholder="例：小4の35人に45分で防災を伝えたい。準備は20分しかない"
-     onkeydown="if(event.key==='Enter')askAI(this.value)">
-    <button onclick="askAI(document.getElementById('aiq').value)">${AI.loading?"考えています…":"聞いてみる"}</button>
-   </div>
-   <div class="askex">${["小4の35人に45分で防災を伝えたい","家で3日でできる自由研究","中学生に研究者の仕事を伝えたい","無料で使える動画教材"]
-     .map(x=>`<button onclick="askAI('${x}')">${x}</button>`).join("")}</div>
-   ${AI.error?`<div class="answer"><span class="lab">つながりませんでした</span>${esc(AI.error)}</div>`:""}
-   ${AI.answer?`<div class="answer"><span class="lab">AIの回答</span>${esc(AI.answer)}
-     <div class="warn">価格・対象・URLは、AIの文章ではなく下のカードの内容（提供者の情報）をご確認ください。</div></div>`:""}
-  </div>
-  ${AI.ids.length?`<div class="grid" style="margin-top:16px">${AI.ids.map(id=>it(id)).filter(Boolean).map(card).join("")}</div>`:""}
  </section>
 
  <section><div class="sec-hd"><h2>何をしたいかで選ぶ</h2>
@@ -437,20 +555,20 @@ function viewHome(){
   <div class="tiles">${DB.groups.map(g=>`<button class="tile" style="background:${VERB[g].c}" onclick="openHub('verb','${g}')">
    <span class="n">${DB.items.filter(i=>i.grp===g).length}</span><b>${g}</b><span>${VERB[g].d}</span></button>`).join("")}</div>
  </section>
- <section><div class="sec-hd"><h2>掲載する</h2><span class="sub">3つの経路。書ける範囲がそれぞれ違います</span></div>
-  <div class="tiles">${POSTS.map(p=>`<button class="tile" style="background:${p.color}" onclick="openHub('post','${p.key}')">
-   <span class="n">${p.n}</span><b style="font-size:19px">${p.title}</b><span>${p.who}</span></button>`).join("")}</div>
- </section>
  <section><div class="sec-hd"><h2>時間がない人へ</h2></div>
   <button class="rescue" onclick="openHub('rescue','')">
    <span><b>選ばなくていいものを、置いています</b>
    <p>進行表・準備物・配る紙まで入った一式です。来週の45分、9月1日の15分、あと10日の自由研究。締切から選べます。</p></span>
    <span class="arrow">見る →</span></button>
  </section>
- ${fbSection()}
-
  <section><div class="sec-hd"><h2>届けている人たち</h2></div>
   <div class="subbar">${DB.ptypes.map(p=>`<button class="subchip" onclick="resetF();F.ptype='${p}';go('list')">${p}<i>${DB.items.filter(i=>i.ptype===p).length}</i></button>`).join("")}</div>
+ </section>
+ ${fbSection()}
+
+ <section><div class="sec-hd"><h2>掲載する</h2><span class="sub">3つの経路。書ける範囲がそれぞれ違います</span></div>
+  <div class="tiles">${POSTS.map(p=>`<button class="tile" style="background:${p.color}" onclick="openHub('post','${p.key}')">
+   <span class="n">${p.n}</span><b style="font-size:19px">${p.title}</b><span>${p.who}</span></button>`).join("")}</div>
  </section>
  <footer>プリズムは、科学を伝えるための道具・人・場所を集めた場です。<br>
  掲載${DB.items.length}件は実在の提供者です。価格の一部とリアクション数はダミーです。アイコンは各提供者サイトのファビコンです。<br>
