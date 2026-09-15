@@ -89,6 +89,21 @@ def cmd_sync(a):
         print(f"   {i}行目 {t[:28]:<30} {why}")
     if len(ng) > 20: print(f"   ほか {len(ng)-20}件")
 
+def cmd_sync_stream(a):
+    """Googleスプレッドシートの stream シート → data/stream.csv"""
+    sid = a.sheet or os.environ.get("SHEET_ID", "")
+    if not sid:
+        print("SHEET_ID が未設定のため、更新の取り込みは行いません。"); 
+        write_csv(a.out, schema.STREAM, []); return
+    try:
+        rows = sheet.parse(sheet.fetch(sid, a.name))
+    except Exception as e:
+        print(f"stream シートを読めませんでした（{e}）。空のまま進めます。")
+        write_csv(a.out, schema.STREAM, []); return
+    ok = [r for r in rows if (r.get("title") or "").strip() and (r.get("status") or "ok") != "hidden"]
+    write_csv(a.out, schema.STREAM, ok)
+    print(f"stream シートから {len(rows)}行 → 表示対象 {len(ok)}件 → {a.out}")
+
 def cmd_decompose(a):
     rows, out = rows_from(a.inp), []
     st = dict(n=0, con=0, gate=0, go=0)
@@ -134,6 +149,8 @@ if __name__ == "__main__":
     c.add_argument("--out", default="data/materials.csv"); c.set_defaults(f=cmd_decompose)
     e = s.add_parser("sync"); e.add_argument("--sheet"); e.add_argument("--name", default="listings")
     e.add_argument("--out", default="data/listings.csv"); e.set_defaults(f=cmd_sync)
+    g = s.add_parser("sync-stream"); g.add_argument("--sheet"); g.add_argument("--name", default="stream")
+    g.add_argument("--out", default="data/stream.csv"); g.set_defaults(f=cmd_sync_stream)
     d = s.add_parser("coverage"); d.add_argument("--in", dest="inp", default="data/listings.csv")
     d.set_defaults(f=cmd_coverage)
     a = p.parse_args(); a.f(a)
