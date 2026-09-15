@@ -55,7 +55,7 @@ header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.93);backdro
 .vmarq{display:flex;flex-direction:column;gap:9px;padding:0 18px;animation:vslide 40s linear infinite}
 .vwrap:hover .vmarq{animation-play-state:paused}
 @keyframes vslide{to{transform:translateY(-50%)}}
-.st{background:#161d27;border:1px solid #26313e;border-radius:15px;padding:12px 14px;display:flex;gap:11px;align-items:flex-start}
+.st{text-decoration:none;color:inherit;background:#161d27;border:1px solid #26313e;border-radius:15px;padding:12px 14px;display:flex;gap:11px;align-items:flex-start}
 .st:hover{border-color:#4c6076;background:#1b2430}
 .st .ico{width:32px;height:32px;border-radius:9px;background:#232d3a;flex:0 0 auto;display:grid;place-items:center;overflow:hidden}
 .st .ico img{width:20px;height:20px;border-radius:4px}
@@ -273,13 +273,7 @@ section{margin-top:50px}
 .meter .dots i.on{color:var(--ink)}
 .meter .tx{color:var(--ink2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* AIタブ内 */
-.askin{
-  background:#0c1016;
-  border-radius:20px;
-  padding:18px 20px;
-  color:#e9eef5;
-  align-self:start;
-}
+.askin{background:#0c1016;border-radius:20px;padding:18px 20px;color:#e9eef5;align-self:start}
 .findcol .askbox input{flex:1 1 100%}
 .findcol .askbox button{width:100%}
 .askin p{margin:0 0 12px;font-size:13.5px;color:#9fb0c2}
@@ -473,7 +467,10 @@ function money(i){if(i.txn==="無料")return "無料";if(i.price&&Number(i.price
 function isStream(i){return i.freq==="週次"||i.freq==="日次"}
 function th(i){const c=SPEC[i.field];
  return c?`background:linear-gradient(140deg,${c} 0%,${c} 46%,${c}22 100%),repeating-linear-gradient(48deg,rgba(255,255,255,.2) 0 9px,transparent 9px 18px);`:`background:${RAINBOW};`}
-function flag(i){if(isStream(i))return `<span class="flag" style="background:var(--live)">毎週更新</span>`;
+function flag(i){
+ if(i.last_item_at){const d=String(i.last_item_at).split("-");
+  if(d.length===3)return `<span class="flag" style="background:var(--live)">${Number(d[1])}月${Number(d[2])}日に更新</span>`}
+ if(isStream(i))return `<span class="flag" style="background:var(--live)">毎週更新（申告）</span>`;
  if(i.txn==="要見積もり")return `<span class="flag" style="background:#2b3542">依頼して呼ぶ</span>`;
  if(i.txn==="予約（日時指定）")return `<span class="flag" style="background:#0057c2">日時指定</span>`;return ""}
 function meterPrep(i){
@@ -519,6 +516,12 @@ function setSort(v){sort=v;render()}
 function sortSel(){return `<select class="sortsel" aria-label="並び替え" onchange="setSort(this.value)">
  ${SORTS.map(s=>`<option value="${s[0]}" ${sort===s[0]?"selected":""}>${s[1]}</option>`).join("")}</select>`}
 
+function streamItem(x){
+ const li=it(x.listing_id)||{};
+ return `<a class="st" href="${x.url}" target="_blank" rel="noopener">
+  <span class="ico">${fav(li.url||x.url,20)}</span>
+  <span><span class="f">${esc(x.at)}　${esc(x.fmt||"")}</span>
+   <h3>${esc(x.title)}</h3><div class="m">${esc(x.provider||"")}</div></span></a>`}
 function streamCard(i){return `<button class="st" onclick="openItem(${i.id})">
  <span class="ico">${fav(i.url,20)}</span>
  <span><span class="f">${i.fmt}</span><h3>${esc(i.title)}</h3><div class="m">${esc(i.provider)}</div></span></button>`}
@@ -535,9 +538,14 @@ function viewHome(){
     <div><b>${DB.ptypes.length}</b><span>届けている人の種類</span></div>
     <div><b>${noField}</b><span>分野をまたぐもの</span></div></div></div>
   <div class="stream">
-   <div class="sh"><span class="dot"></span><b>今週の更新</b><span class="cnt2">${stream.length}チャンネル</span></div>
-   <p class="note">毎週なにか増えている場所。ここだけは、毎日開いても変わっています。</p>
-   <div class="vwrap"><div class="vmarq">${stream.concat(stream).map(streamCard).join("")}</div></div></div>
+   <div class="sh"><span class="dot"></span><b>今週の更新</b>
+    <span class="cnt2">${DB.stream&&DB.stream.length?DB.stream.length+"件":stream.length+"チャンネル"}</span></div>
+   <p class="note">${DB.stream&&DB.stream.length
+     ?"毎週1回、掲載元をまとめて見に行っています。新しく出たものだけを並べています。"
+     :"毎週なにか増えている場所。ここだけは、毎日開いても変わっています。"}</p>
+   <div class="vwrap"><div class="vmarq">${(DB.stream&&DB.stream.length)
+     ? DB.stream.concat(DB.stream).map(streamItem).join("")
+     : stream.concat(stream).map(streamCard).join("")}</div></div></div>
  </div>
  <div class="sentence">
   <div class="sent">わたしは
