@@ -44,6 +44,11 @@ jobs:
           SHEET_ID: ${{ secrets.SHEET_ID }}
         run: python3 run.py sync --out data/listings.csv
 
+      - name: 今週の更新を取り込む
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: python3 run.py sync-stream --out data/stream.csv
+
       - name: 物品分解
         run: python3 run.py decompose --in data/listings.csv --out data/materials.csv
 
@@ -58,7 +63,7 @@ jobs:
           JALAN_ID: ${{ secrets.JALAN_ID }}
           AI_ENDPOINT: ${{ secrets.AI_ENDPOINT }}
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
-        run: python3 site/build.py --listings data/listings.csv --materials data/materials.csv --out _site/index.html
+        run: python3 site/build.py --listings data/listings.csv --materials data/materials.csv --stream data/stream.csv --out _site/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
