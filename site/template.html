@@ -248,11 +248,17 @@ section{margin-top:50px}
 .sentgo{margin-top:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .sentgo button{background:var(--ink);color:#fff;border-radius:999px;padding:13px 32px;font-weight:900;font-size:16px}
 .sentgo .n{font-size:13px;color:var(--ink3);font-weight:700}
-/* タブ */
-.tabs{display:flex;gap:6px;margin-top:22px;border-bottom:1px solid var(--rule)}
-.tabs button{padding:10px 18px;font-weight:900;font-size:14.5px;color:var(--ink3);border-bottom:3px solid transparent;margin-bottom:-1px}
-.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
-.tabbody{padding-top:16px}
+/* 2カラム：左＝ことばで探す／右＝文章で聞く */
+.findgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px;padding-top:20px;border-top:1px solid var(--rule)}
+@media(max-width:900px){.findgrid{grid-template-columns:1fr;gap:26px}}
+.findcol{min-width:0}
+.colhd{font-size:12px;font-weight:900;letter-spacing:.1em;color:var(--ink3);margin:0 0 10px}
+/* そのほかの自由記述 */
+.freein{font:inherit;font-size:inherit;font-weight:900;border:0;border-bottom:3px solid var(--pract);
+ background:#fef4e9;border-radius:8px 8px 0 0;padding:2px 10px;margin:0 4px;color:var(--pract);min-width:180px;max-width:100%}
+.freein.wide{min-width:280px}
+.freein:focus{outline:none;background:#fde9d6}
+@media(max-width:700px){.freein,.freein.wide{min-width:100%;margin:6px 0}}
 /* 語の候補 */
 .words{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 .word{border:1px solid var(--rule2);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;background:#fff}
@@ -267,7 +273,9 @@ section{margin-top:50px}
 .meter .dots i.on{color:var(--ink)}
 .meter .tx{color:var(--ink2);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* AIタブ内 */
-.askin{background:#0c1016;border-radius:20px;padding:20px 22px;color:#e9eef5}
+.askin{background:#0c1016;border-radius:20px;padding:20px 22px;color:#e9eef5;height:100%}
+.findcol .askbox input{flex:1 1 100%}
+.findcol .askbox button{width:100%}
 .askin p{margin:0 0 12px;font-size:13.5px;color:#9fb0c2}
 footer{margin-top:64px;border-top:1px solid var(--rule);padding:24px 0 70px;font-size:12px;color:var(--ink3);line-height:1.95}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -368,36 +376,66 @@ let AI={q:"",loading:false,answer:"",ids:[],error:""};
 let FB={list:[],loaded:false,sending:false,ok:"",error:""};
 let TAB="cond";                       // cond=条件で探す / ai=文章で聞く
 let ROLE="", GOAL="";                 // 1文の入口。選ぶと以後ずっと保持する
+let ROLE_FREE="", GOAL_FREE="";       // 「そのほか」を選んだときの自由記述
 
 /* 役割ごとに、目的の選択肢・語の優先・カードで見せる情報が変わる。
    audience 列は146件中53件が「全年齢」で分離しないため、purpose との組で判定する。 */
 const ROLES={
- "小学生":        {goals:{"家でできる実験":{pu:["家庭で楽しむ"]},"自由研究のテーマ":{pu:["探究・自由研究"]},"見て楽しめる動画":{grp:"みる・きく"},"行ってみたい場所":{grp:"いく"}},
-                   words:["工作","昆虫","恐竜","星空","実験"], show:"一人でできるか・費用"},
- "中高生":        {goals:{"探究のテーマ":{pu:["探究・自由研究"]},"研究者の話を聞く":{grp:"よぶ・あう"},"進路のヒント":{pu:["進路・キャリア"]},"見て学べる動画":{grp:"みる・きく"}},
-                   words:["プログラミング","宇宙","化学","データ","進路"], show:"一人でできるか・費用"},
- "大学生・院生":  {goals:{"伝え方を学ぶ":{pu:["職能開発"]},"発信の場をさがす":{grp:"やってみる"},"自分の研究を届ける":{grp:"よぶ・あう"}},
-                   words:["科学コミュニケーション","対話","ワークショップ","研修"], show:"費用・規模"},
- "保護者":        {goals:{"子どもと家でやれること":{pu:["家庭で楽しむ"]},"自由研究を手伝う":{pu:["探究・自由研究"]},"休日に行ける場所":{grp:"いく"},"買ってあげるもの":{grp:"つかう"}},
-                   words:["自由研究","観察","工作","プラネタリウム","恐竜"], show:"準備の重さ・費用・汚れ"},
- "教員・学校":    {goals:{"授業で使う教材":{pu:["授業で使う"]},"出張授業を頼む":{grp:"よぶ・あう"},"校外学習の行き先":{grp:"いく"},"総合学習の題材":{pu:["探究・自由研究"]}},
-                   words:["防災","理科実験","出前授業","天気","地震"], show:"人数・所要時間・準備時間"},
+ "小学生":        {goals:{"家でできる実験":{grp:"つかう"},"自由研究のテーマ":{pu:"探究・自由研究"},"見て楽しめる動画":{grp:"みる・きく"},"行ってみたい場所":{grp:"いく"}},
+                   words:["工作","昆虫","恐竜","星空","理科実験"]},
+ "中高生":        {goals:{"探究のテーマ":{pu:"探究・自由研究"},"研究者の話を聞く":{grp:"よぶ・あう"},"進路のヒント":{pu:"進路・キャリア"},"見て学べる動画":{grp:"みる・きく"}},
+                   words:["プログラミング","宇宙","化学","進路","科学"]},
+ "大学生・院生":  {goals:{"伝え方を学ぶ":{pu:"スキル習得"},"発信の場をさがす":{grp:"やってみる"},"進路を考える":{pu:"進路・キャリア"}},
+                   words:["科学コミュニケーション","対話","ワークショップ"]},
+ "保護者":        {goals:{"子どもと家でやれること":{pu:"興味喚起"},"自由研究を手伝う":{pu:"探究・自由研究"},"休日に行ける場所":{grp:"いく"},"買ってあげるもの":{grp:"つかう"}},
+                   words:["自由研究","自然観察","工作","プラネタリウム","恐竜"]},
+ "教員・学校":    {goals:{"授業で使う教材":{grp:"つかう"},"出張授業を頼む":{grp:"よぶ・あう"},"校外学習の行き先":{grp:"いく"},"総合学習の題材":{pu:"探究・自由研究"}},
+                   words:["防災","理科実験","出前授業","教材","地震"]},
  "科学館・団体":  {goals:{"催しの題材をさがす":{grp:"やってみる"},"講師を呼ぶ":{grp:"よぶ・あう"},"展示に使う道具":{grp:"つかう"}},
-                   words:["サイエンスショー","ワークショップ","対話","展示"], show:"規模・準備の重さ"},
- "企業・自治体":  {goals:{"啓発イベントを企画する":{pu:["啓発・広報"]},"講師を依頼する":{grp:"よぶ・あう"},"地域の活動をさがす":{pu:["地域活動"]}},
-                   words:["防災","健康","環境","食育"], show:"依頼か購入か・規模"},
- "研究者":        {goals:{"自分の研究を伝える":{pu:["職能開発"]},"アウトリーチの場":{grp:"やってみる"},"伝え方を学ぶ":{pu:["職能開発"]}},
-                   words:["科学コミュニケーション","アウトリーチ","対話"], show:"規模・費用"}};
+                   words:["サイエンスショー","ワークショップ","対話","展示"]},
+ "企業・自治体":  {goals:{"啓発の催しを企画する":{pu:"態度・行動変容"},"講師を依頼する":{grp:"よぶ・あう"},"社員の学び直し":{pu:"リスキリング"}},
+                   words:["防災","健康","食育","対話"]},
+ "研究者":        {goals:{"自分の研究を伝える":{grp:"よぶ・あう"},"アウトリーチの場":{grp:"やってみる"},"伝え方を学ぶ":{pu:"スキル習得"}},
+                   words:["科学コミュニケーション","対話","出張"]},
+ "幼稚園・保育園":{goals:{"小さな子とやれること":{pu:"興味喚起"},"園に来てもらう":{grp:"よぶ・あう"},"散歩で見られるもの":{grp:"いく"}},
+                   words:["自然観察","昆虫","工作","食育"]},
+ "学童・放課後":  {goals:{"放課後にできる工作":{grp:"つかう"},"長期休みの企画":{grp:"やってみる"},"外に出かける先":{grp:"いく"}},
+                   words:["工作","理科実験","カードゲーム","自由研究"]},
+ "図書館・公民館":{goals:{"催しの題材をさがす":{grp:"やってみる"},"講師を呼ぶ":{grp:"よぶ・あう"},"置く本をさがす":{grp:"よむ"}},
+                   words:["ワークショップ","対話","サイエンスショー","教材"]},
+ "地域・自治会":  {goals:{"防災の集まりで使う":{pu:"態度・行動変容"},"講師を呼ぶ":{grp:"よぶ・あう"},"住民向けの催し":{grp:"やってみる"}},
+                   words:["防災","地震","健康","自然観察"]},
+ "報道・メディア":{goals:{"取材先をさがす":{grp:"よぶ・あう"},"わかりやすい資料":{grp:"みる・きく"},"背景を調べる":{pu:"知識習得"}},
+                   words:["科学","研究","動画","対話"]},
+ "そのほか":      {free:true, goals:{}, words:[]}};
+const OTHER="そのほか";
 
 function roleWords(){
  const base=(ROLES[ROLE]&&ROLES[ROLE].words)||[];
  const rest=DB.topics_top.filter(function(t){return base.indexOf(t)<0});
  return base.filter(function(t){return DB.topics_top.indexOf(t)>=0||true}).concat(rest).slice(0,18);
 }
+/* 「そのほか」が絡むと、決まった絞り込みに落とせない。
+   そこで1文をそのまま文章にして「文章で聞く」へ送る。 */
+function freeMode(){return ROLE===OTHER||GOAL===OTHER}
+function sentenceText(){
+ const rf=document.getElementById("rolefree"), gf=document.getElementById("goalfree");
+ const r=(ROLE===OTHER)?((rf&&rf.value)||ROLE_FREE||"").trim():ROLE;
+ const g=(GOAL===OTHER||ROLE===OTHER)?((gf&&gf.value)||GOAL_FREE||"").trim():GOAL;
+ ROLE_FREE=(rf&&rf.value)||ROLE_FREE; GOAL_FREE=(gf&&gf.value)||GOAL_FREE;
+ return "わたしは"+(r||"科学に関心のある人")+"で、"+(g||"科学に出会えるもの")+"を探しています。";
+}
 function applySentence(){
+ if(freeMode()){
+  const t=sentenceText();
+  if((ROLE===OTHER&&!ROLE_FREE.trim())&&!GOAL_FREE.trim()){
+   AI.error="「そのほか」を選んだときは、探しているものを書いてください。";render();return}
+  askAI(t);                       // 文章で聞くへそのまま送り、結果を下に出す
+  return;
+ }
  resetF();
  const g=ROLES[ROLE]&&ROLES[ROLE].goals[GOAL];
- if(g){ if(g.grp)F.grp=g.grp; if(g.pu)F.purpose=g.pu[0]; }
+ if(g){ if(g.grp)F.grp=g.grp; if(g.pu)F.purpose=g.pu; }
  go('list');
 }
 function sentenceCount(){
@@ -405,7 +443,7 @@ function sentenceCount(){
  if(!g)return DB.items.length;
  return DB.items.filter(function(i){
   if(g.grp&&i.grp!==g.grp)return false;
-  if(g.pu&&i.purpose.indexOf(g.pu[0])<0)return false;
+  if(g.pu&&i.purpose.indexOf(g.pu)<0)return false;
   return true}).length;
 }
 function setRole(v){ROLE=v;GOAL="";render()}
@@ -500,46 +538,49 @@ function viewHome(){
    <select aria-label="立場" onchange="setRole(this.value)">
     <option value="">…</option>
     ${Object.keys(ROLES).map(r=>`<option ${ROLE===r?"selected":""}>${r}</option>`).join("")}
-   </select>で、
+   </select>${ROLE===OTHER?`<input class="freein" id="rolefree" value="${esc(ROLE_FREE)}" placeholder="例：科学館のボランティア"
+     oninput="ROLE_FREE=this.value" aria-label="立場を自由に書く">`:""}で、
    <select aria-label="探しているもの" onchange="setGoal(this.value)" ${ROLE?"":"disabled"}>
     <option value="">${ROLE?"…":"まず立場を選んでください"}</option>
-    ${ROLE?Object.keys(ROLES[ROLE].goals).map(g=>`<option ${GOAL===g?"selected":""}>${g}</option>`).join(""):""}
-   </select>を探しています。</div>
+    ${ROLE&&!ROLES[ROLE].free?Object.keys(ROLES[ROLE].goals).map(g=>`<option ${GOAL===g?"selected":""}>${g}</option>`).join(""):""}
+    ${ROLE?`<option ${GOAL===OTHER?"selected":""}>${OTHER}</option>`:""}
+   </select>${(GOAL===OTHER||ROLE===OTHER)?`<input class="freein wide" id="goalfree" value="${esc(GOAL_FREE)}" placeholder="例：中学生と一緒に川の水を調べたい"
+     oninput="GOAL_FREE=this.value" aria-label="探しているものを自由に書く">`:""}を探しています。</div>
   <div class="sentgo">
-   <button onclick="applySentence()" ${ROLE&&GOAL?"":"disabled style=opacity:.4;cursor:not-allowed"}>さがす</button>
-   <span class="n">${ROLE&&GOAL?sentenceCount()+"件あります":"2つ選ぶと進めます"}</span>
+   <button onclick="applySentence()" ${ROLE&&(GOAL||ROLE===OTHER)?"":"disabled style=opacity:.4;cursor:not-allowed"}>さがす</button>
+   <span class="n">${freeMode()?"文章で聞くに送ります":(ROLE&&GOAL?sentenceCount()+"件あります":"2つ選ぶと進めます")}</span>
   </div>
 
-  <div class="tabs" role="tablist">
-   <button role="tab" aria-selected="${TAB==='cond'}" onclick="setTab('cond')">ことばで探す</button>
-   <button role="tab" aria-selected="${TAB==='ai'}" onclick="setTab('ai')">文章で聞く</button>
-  </div>
-  <div class="tabbody">
-  ${TAB==='cond'?`
-   <div class="searchbar" style="margin-top:0;box-shadow:4px 4px 0 var(--rule2)">
-    <div class="sb"><label>キーワード</label><input id="q" placeholder="防災、宇宙、顕微鏡、さかなクン…" aria-label="キーワード"
-     onkeydown="if(event.key==='Enter'){resetF();F.q=this.value;go('list')}"></div>
-    <div class="sbgo"><button onclick="resetF();F.q=document.getElementById('q').value;go('list')">さがす</button></div>
-   </div>
-   <p class="wordlab">${ROLE?ROLE+"の方によく見られている言葉":"よく使われている言葉"}</p>
-   <div class="words">${roleWords().map(w=>`<button class="word" onclick="resetF();F.q='${w}';go('list')">${w}</button>`).join("")}</div>
-  `:`
-   <div class="askin">
-    <p>やりたいことを、そのまま文章で書いてください。${DB.items.length}件の中から候補を選んで理由を答えます。</p>
-    <div class="askbox">
-     <input id="aiq" value="${esc(AI.q)}" placeholder="例：小4の35人に45分で防災を伝えたい。準備は20分しかない"
-      onkeydown="if(event.key==='Enter')askAI(this.value)">
-     <button onclick="askAI(document.getElementById('aiq').value)">${AI.loading?"考えています…":"聞いてみる"}</button>
+  <div class="findgrid">
+   <div class="findcol">
+    <p class="colhd">ことばで探す</p>
+    <div class="searchbar" style="margin-top:0;box-shadow:4px 4px 0 var(--rule2)">
+     <div class="sb"><label>キーワード</label><input id="q" placeholder="防災、宇宙、顕微鏡、さかなクン…" aria-label="キーワード"
+      onkeydown="if(event.key==='Enter'){resetF();F.q=this.value;go('list')}"></div>
+     <div class="sbgo"><button onclick="resetF();F.q=document.getElementById('q').value;go('list')">さがす</button></div>
     </div>
-    <div class="askex">${["小4の35人に45分で防災を伝えたい","家で3日でできる自由研究","中学生に研究者の仕事を伝えたい","無料で使える動画教材"]
-      .map(x=>`<button onclick="askAI('${x}')">${x}</button>`).join("")}</div>
-    ${AI.error?`<div class="answer"><span class="lab">つながりませんでした</span>${esc(AI.error)}</div>`:""}
-    ${AI.answer?`<div class="answer"><span class="lab">AIの回答</span>${esc(AI.answer)}
-      <div class="warn">価格・対象・URLは、AIの文章ではなく下のカードの内容（提供者の情報）をご確認ください。</div></div>`:""}
+    <p class="wordlab">${ROLE&&ROLE!==OTHER?ROLE+"の方によく見られている言葉":"よく使われている言葉"}</p>
+    <div class="words">${roleWords().map(w=>`<button class="word" onclick="resetF();F.q='${w}';go('list')">${w}</button>`).join("")}</div>
    </div>
-   ${AI.ids.length?`<div class="grid" style="margin-top:16px">${AI.ids.map(id=>it(id)).filter(Boolean).map(card).join("")}</div>`:""}
-  `}
+
+   <div class="findcol">
+    <p class="colhd">文章で聞く</p>
+    <div class="askin">
+     <p>やりたいことを、そのまま文章で書いてください。${DB.items.length}件の中から候補を選んで理由を答えます。</p>
+     <div class="askbox">
+      <input id="aiq" value="${esc(AI.q)}" placeholder="例：小4の35人に45分で防災を伝えたい。準備は20分しかない"
+       onkeydown="if(event.key==='Enter')askAI(this.value)">
+      <button onclick="askAI(document.getElementById('aiq').value)">${AI.loading?"考えています…":"聞いてみる"}</button>
+     </div>
+     <div class="askex">${["小4の35人に45分で防災を伝えたい","家で3日でできる自由研究","中学生に研究者の仕事を伝えたい","無料で使える動画教材"]
+       .map(x=>`<button onclick="askAI('${x}')">${x}</button>`).join("")}</div>
+     ${AI.error?`<div class="answer"><span class="lab">つながりませんでした</span>${esc(AI.error)}</div>`:""}
+     ${AI.answer?`<div class="answer"><span class="lab">AIの回答</span>${esc(AI.answer)}
+       <div class="warn">価格・対象・URLは、AIの文章ではなく下のカードの内容（提供者の情報）をご確認ください。</div></div>`:""}
+    </div>
+   </div>
   </div>
+  ${AI.ids.length?`<div class="grid" style="margin-top:18px">${AI.ids.map(id=>it(id)).filter(Boolean).map(card).join("")}</div>`:""}
  </div>
 
  <section><div class="sec-hd"><h2>コーナー</h2><span class="sub">目的別の入り口。流れている帯から選べます</span></div>
@@ -564,12 +605,12 @@ function viewHome(){
  <section><div class="sec-hd"><h2>届けている人たち</h2></div>
   <div class="subbar">${DB.ptypes.map(p=>`<button class="subchip" onclick="resetF();F.ptype='${p}';go('list')">${p}<i>${DB.items.filter(i=>i.ptype===p).length}</i></button>`).join("")}</div>
  </section>
- ${fbSection()}
-
  <section><div class="sec-hd"><h2>掲載する</h2><span class="sub">3つの経路。書ける範囲がそれぞれ違います</span></div>
   <div class="tiles">${POSTS.map(p=>`<button class="tile" style="background:${p.color}" onclick="openHub('post','${p.key}')">
    <span class="n">${p.n}</span><b style="font-size:19px">${p.title}</b><span>${p.who}</span></button>`).join("")}</div>
  </section>
+ ${fbSection()}
+
  <footer>プリズムは、科学を伝えるための道具・人・場所を集めた場です。<br>
  掲載${DB.items.length}件は実在の提供者です。価格の一部とリアクション数はダミーです。アイコンは各提供者サイトのファビコンです。<br>
  掲載の削除・修正のご依頼はこちらまで： <a href="mailto:REPLACE_WITH_YOUR_EMAIL">REPLACE_WITH_YOUR_EMAIL</a></footer></div>`}
@@ -577,6 +618,7 @@ function viewHome(){
 async function askAI(q){
  if(!q||!q.trim())return;
  AI.q=q; AI.error=""; AI.answer=""; AI.ids=[];
+ const box=document.getElementById("aiq"); if(box)box.value=q;
  if(!AI_ENDPOINT||AI_ENDPOINT.indexOf("__")===0){
   AI.error="AIの接続先が設定されていません。GitHub の Secrets に AI_ENDPOINT を登録し、Actions を再実行してください。";
   render();return}
@@ -734,7 +776,7 @@ const JQ_BUDGET={
  "over":{label:"3,000円以上でもよい",test:i=>Number(i.price)>3000}};
 function jqList(){
  return DB.items.filter(function(i){
-  if(!(i.purpose.indexOf("探究・自由研究")>=0||i.purpose.indexOf("家庭で楽しむ")>=0))return false;
+  if(!(i.purpose.indexOf("探究・自由研究")>=0||i.purpose.indexOf("エンタメ")>=0))return false;
   if(JQ.mode&&!JQ_MODE[JQ.mode].test(i))return false;
   if(JQ.field&&i.field!==JQ.field)return false;
   if(JQ.budget&&!JQ_BUDGET[JQ.budget].test(i))return false;
