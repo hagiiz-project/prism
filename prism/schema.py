@@ -13,6 +13,13 @@ LISTINGS = [
  ("region_pref","都道府県。「いく」で必須"),("region_city","市区町村"),("lat","緯度"),("lng","経度"),
  ("access_note","最寄り駅・所要時間など"),("description","1〜3文の説明"),
  ("source_feed","更新監視URL。空なら自動推定"),("license_note","利用条件の注意"),
+ ("feed_url","監視先。空なら毎週の処理が自動で調べて埋める"),
+ ("feed_type","youtube_rss / rss / none。空＝未判定"),
+ ("auto_update","TRUE=自動取得する。TikTok/Instagram等は FALSE"),
+ ("last_item_at","最後に新しい回が出た日。システムが書く＝観測された事実"),
+ ("last_checked_at","最後に見に行った日。システムが書く"),
+ ("check_status","ok / fail / retired。システムが書く"),
+ ("fail_count","連続失敗回数。システムが書く"),
  ("status","active / needs_review / stale / gone"),("updated_at","ISO8601"),
 ]
 MATERIALS = [
@@ -26,6 +33,17 @@ MATERIALS = [
 AFFILIATE = [("ref_type","material / listing"),("ref_id","参照先id"),
  ("network","amazon / rakuten / rakuten_travel / jalan"),("query","検索語"),("url","遷移先"),
  ("gated","TRUE=表示しない"),("disclosure","開示文のキー"),("updated_at","ISO8601")]
+STREAM = [
+ ("listing_id",  "どの掲載の回か"),
+ ("external_id", "動画IDなど。重複保存を防ぐ鍵"),
+ ("title",       "回のタイトル"),
+ ("url",         "その回への直リンク"),
+ ("published_at","公開日"),
+ ("kind",        "episode / session / notice"),
+ ("fetched_at",  "取得日"),
+ ("status",      "ok / hidden。hidden にするとサイトに出ない"),
+]
+
 SOURCES = [("listing_id","掲載のid"),("source_type","youtube_rss / note_rss / rss_autodiscover / ical / html_watch / manual"),
  ("url","監視URL"),("cadence","daily / weekly / monthly / yearly / manual"),
  ("extractor","atom_video / rss_item / page_hash / ics_event"),("note","備考")]
