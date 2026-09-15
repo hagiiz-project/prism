@@ -47,7 +47,12 @@ def main(a):
             topics=sp(r.get("topics")), since=r.get("year_since",""),
             freq=r.get("更新頻度") or r.get("update_freq") or "",
             mats=mats.get(lid, [])))
-    db = dict(items=items, groups=taxonomy.ACT_GROUPS,
+    # 検索の語候補：topics の出現頻度から実際によく出る語を拾う
+    from collections import Counter
+    tc = Counter(t for i in items for t in i["topics"])
+    topics_top = [t for t, n in tc.most_common(60) if n >= 2]
+
+    db = dict(items=items, groups=taxonomy.ACT_GROUPS, topics_top=topics_top,
         fields=sorted({i["field"] for i in items if i["field"]}),
         ptypes=sorted({i["ptype"] for i in items if i["ptype"]}),
         txns=taxonomy.TXNS, audiences=taxonomy.AUDIENCES,
