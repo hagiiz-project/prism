@@ -277,6 +277,24 @@ section{margin-top:50px}
 .findcol .askbox input{flex:1 1 100%}
 .findcol .askbox button{width:100%}
 .askin p{margin:0 0 12px;font-size:13.5px;color:#9fb0c2}
+
+/* 掲載フォーム */
+.subform{background:#fff;border:2px solid var(--ink);border-radius:22px;padding:24px 26px;margin-top:20px;box-shadow:6px 6px 0 var(--ink)}
+.subform h3{font-size:19px;font-weight:900}
+.subform .lead{font-size:13px;color:var(--ink2);margin:6px 0 0;font-weight:600;line-height:1.8}
+.fld2{margin-top:16px}
+.fld2 label{display:block;font-size:11.5px;font-weight:900;color:var(--ink3);letter-spacing:.06em;margin-bottom:5px}
+.fld2 .req{color:#c2185b;margin-left:5px}
+.fld2 input,.fld2 select,.fld2 textarea{width:100%;border:1px solid var(--rule2);border-radius:12px;padding:11px 13px;font:inherit;font-size:14.5px;background:#fbfbfb}
+.fld2 textarea{min-height:92px;resize:vertical;line-height:1.8}
+.fld2 input:focus,.fld2 select:focus,.fld2 textarea:focus{outline:none;border-color:var(--claim);background:#fff}
+.fld2 .help{font-size:11.5px;color:var(--ink3);margin-top:5px;font-weight:600;line-height:1.7}
+.fld2row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.fld2row{grid-template-columns:1fr}}
+.chips3{display:flex;flex-wrap:wrap;gap:6px}
+.chip3{border:1px solid var(--rule2);border-radius:999px;padding:6px 13px;font-size:13px;font-weight:700;background:#fff}
+.chip3[aria-pressed=true]{background:var(--claim);border-color:var(--claim);color:#fff}
+.subsend{margin-top:20px;width:100%;background:var(--ink);color:#fff;border-radius:999px;padding:14px;font-weight:900;font-size:15.5px;text-align:center}
 footer{margin-top:64px;border-top:1px solid var(--rule);padding:24px 0 70px;font-size:12px;color:var(--ink3);line-height:1.95}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
@@ -374,6 +392,7 @@ let view="home",curId=null,hub=null,sort="new";
 let JQ={mode:"",field:"",budget:""};   // 自由研究コーナーの選択状態
 let AI={q:"",loading:false,answer:"",ids:[],error:""};
 let FB={list:[],loaded:false,sending:false,ok:"",error:""};
+let SUB={vals:{},aud:[],pur:[],sending:false,ok:"",error:""};
 let TAB="cond";                       // cond=条件で探す / ai=文章で聞く
 let ROLE="", GOAL="";                 // 1文の入口。選ぶと以後ずっと保持する
 let ROLE_FREE="", GOAL_FREE="";       // 「そのほか」を選んだときの自由記述
@@ -653,6 +672,102 @@ async function askAI(q){
  AI.loading=false; render();
 }
 function epOK(){return AI_ENDPOINT&&AI_ENDPOINT.indexOf("__")!==0}
+
+/* 掲載フォーム。経路ごとに聞く項目が違う。
+   経路③（見つけた人）には、提供者の推奨条件を一切書かせない。 */
+const FMTS=["教材セット","実験キット","観察器具","模型・立体教具","防災グッズ","ボードゲーム・カード",
+ "書籍・図鑑","電子書籍","動画・オンライン講座","アプリ","VR/AR","ワークショップ","フィールドワーク",
+ "サイエンスショー","出張授業","講演・トークイベント","展示・施設イベント"];
+const FIELDS={
+ own:[["url","URL","必須","https://…"],["title","名称","必須",""],["provider","提供者名","必須",""],
+      ["description","説明","必須","1〜3文で。ここから必要な物品が自動で分解されます"],
+      ["format","形式","","select:FMTS"],["txn","申し込み方","","select:TXN"],
+      ["priceNum","価格（数字のみ）","","例：3200"],["更新頻度","更新の頻度","","select:FREQ"],
+      ["topics","話題の言葉","","｜で区切る。例：防災｜地震｜避難"],
+      ["region_pref","都道府県","",""],["region_city","市区町村","",""]],
+ public:[["url","公式サイトのURL","必須","https://…"],["title","施設・プログラム名","必須",""],
+      ["provider","運営者","必須",""],["description","説明","必須","1〜3文で"],
+      ["format","形式","","select:FMTS"],
+      ["region_pref","都道府県","",""],["region_city","市区町村","",""]],
+ found:[["url","たどれるURL","必須","https://…"],["title","名称（分かれば）","",""],
+      ["description","何がおもしろかったか","必須","見た人の言葉で構いません"],
+      ["note","どこで出会ったか","","例：土曜の朝のテレビ番組で／駅の掲示で"]]};
+const TXN=["無料","フリーミアム","購入（買い切り）","サブスク","予約（日時指定）","要見積もり"];
+const FREQ=["日次","週次","月次","年次","手動"];
+const AUD=["未就学児","小学生","中学生","高校生","大学生・院生","社会人","シニア","全年齢"];
+const PUR=["知識習得","興味喚起","態度・行動変容","探究・自由研究","スキル習得","エンタメ","進路・キャリア","リスキリング"];
+
+function captureSub(route){
+ FIELDS[route].forEach(function(f){
+  const el=document.getElementById("sub_"+f[0]);
+  if(el)SUB.vals[f[0]]=el.value;
+ });
+}
+function toggleSub(kind,v,route){
+ captureSub(route);
+ const a=SUB[kind], i=a.indexOf(v);
+ i<0?a.push(v):a.splice(i,1);
+ render();
+}
+async function sendSubmit(route){
+ captureSub(route);
+ const v=SUB.vals;
+ if(!epOK()){SUB.error="送信先が設定されていません。";render();return}
+ if(!/^https?:\/\//i.test((v.url||"").trim())){SUB.error="URLを http:// か https:// から入れてください。";SUB.ok="";render();return}
+ if(!(v.title||"").trim()&&route!=="found"){SUB.error="名称を入れてください。";SUB.ok="";render();return}
+ if(((v.description||"").trim()).length<10){SUB.error="説明を10文字以上でお書きください。";SUB.ok="";render();return}
+ SUB.sending=true;SUB.error="";SUB.ok="";render();
+ try{
+  let u=AI_ENDPOINT+"?action=submit&route="+route;
+  FIELDS[route].forEach(function(f){
+   const val=(SUB.vals[f[0]]||"").trim();
+   if(val)u+="&"+f[0]+"="+encodeURIComponent(val);
+  });
+  if(route==="own"){
+   if(SUB.aud.length)u+="&audience="+encodeURIComponent(SUB.aud.join("|"));
+   if(SUB.pur.length)u+="&purpose="+encodeURIComponent(SUB.pur.join("|"));
+  }
+  const res=await fetch(u); const d=await res.json();
+  if(d.ok){SUB.ok=d.message||"受け付けました。";SUB.vals={};SUB.aud=[];SUB.pur=[]}
+  else{SUB.error=d.error||"送信できませんでした。"}
+ }catch(e){SUB.error="送信に失敗しました（"+e.message+"）"}
+ SUB.sending=false;render();
+}
+function subField(f,route){
+ const [key,label,req,hint]=f;
+ const val=esc(SUB.vals[key]||"");
+ let input;
+ if((hint||"").indexOf("select:")===0){
+  const opts={FMTS:FMTS,TXN:TXN,FREQ:FREQ}[hint.split(":")[1]]||[];
+  input=`<select id="sub_${key}"><option value="">選ばない</option>${opts.map(o=>`<option ${SUB.vals[key]===o?"selected":""}>${o}</option>`).join("")}</select>`;
+ }else if(key==="description"){
+  input=`<textarea id="sub_${key}" placeholder="${esc(hint)}">${val}</textarea>`;
+ }else{
+  input=`<input id="sub_${key}" value="${val}" placeholder="${esc(hint)}">`;
+ }
+ return `<div class="fld2"><label for="sub_${key}">${label}${req?'<span class="req">必須</span>':""}</label>${input}
+  ${key==="description"&&route!=="found"?`<p class="help">ここから必要な物品が自動で分解されます。実験なら使うもの、施設なら見られるものを具体的に。</p>`:""}</div>`;
+}
+function subForm(route){
+ const P=POSTS.filter(x=>x.key===route)[0];
+ return `<div class="subform">
+  <h3>${P.title}</h3>
+  <p class="lead">${P.lead}</p>
+  ${FIELDS[route].map(f=>subField(f,route)).join("")}
+  ${route==="own"?`
+   <div class="fld2"><label>対象（複数選べます）</label>
+    <div class="chips3">${AUD.map(a=>`<button class="chip3" aria-pressed="${SUB.aud.indexOf(a)>=0}" onclick="toggleSub('aud','${a}','own')">${a}</button>`).join("")}</div></div>
+   <div class="fld2"><label>目的（複数選べます）</label>
+    <div class="chips3">${PUR.map(a=>`<button class="chip3" aria-pressed="${SUB.pur.indexOf(a)>=0}" onclick="toggleSub('pur','${a}','own')">${a}</button>`).join("")}</div></div>`:""}
+  ${route==="found"?`<p class="help" style="margin-top:14px;color:var(--pract);font-weight:700">
+   提供者の推奨条件（対象・時間・人数）は、この経路では入力できません。
+   提供者が言っていないことを代わりに書かないためです。空のまま掲載されます。</p>`:""}
+  <button class="subsend" onclick="sendSubmit('${route}')">${SUB.sending?"送信しています…":"この内容で送る"}</button>
+  <p class="help" style="margin-top:10px">送信後すぐには公開されません。運営が確認してから掲載します。</p>
+  ${SUB.ok?`<div class="fbmsg ok">${esc(SUB.ok)}</div>`:""}
+  ${SUB.error?`<div class="fbmsg ng">${esc(SUB.error)}</div>`:""}
+ </div>`;
+}
 async function loadFeedback(){
  if(!epOK()||FB.loaded)return;
  FB.loaded=true;
@@ -850,7 +965,7 @@ function viewHub(){
   <section><div class="sec-hd"><h2 style="font-size:20px">この経路で書けること／書けないこと</h2></div>
    <div class="box box-claim"><span class="bt">書けること</span><ul>${p.can.map(x=>`<li>${x}</li>`).join("")}</ul></div>
    <div class="box box-empty"><span class="bt">書けないこと</span><ul>${p.cannot.map(x=>`<li>${x}</li>`).join("")}</ul></div></section>
-  <div class="cta-row"><button class="btn" onclick="alert('この試作では入力フォームは未実装です。')">この経路で掲載をはじめる</button></div></div>`}
+  ${subForm(p.key)}</div>`}
  if(hub.kind==="rescue"){
   return `<div class="wrap" style="padding-top:22px">
   <button class="back" onclick="go('home')">← ホーム</button>
