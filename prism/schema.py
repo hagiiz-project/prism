@@ -20,6 +20,8 @@ LISTINGS = [
  ("last_checked_at","最後に見に行った日。システムが書く"),
  ("check_status","ok / fail / retired。システムが書く"),
  ("fail_count","連続失敗回数。システムが書く"),
+ ("submit_route","own / public / found。どの経路で投稿されたか"),
+ ("submit_note","投稿者の言葉。経路③では「どこで出会ったか・何がおもしろかったか」"),
  ("status","active / needs_review / stale / gone"),("updated_at","ISO8601"),
 ]
 MATERIALS = [
